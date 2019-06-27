@@ -1,3 +1,4 @@
+require 'coreaudio'
 require 'ruby-audio'
 require 'fftw3'
 require 'rx'
@@ -19,6 +20,26 @@ class AudioInput
   def self.buffer(buf)
     Rx::Observable.create do |observer|
       observer.on_next(buf)
+      observer.on_completed
+    end.publish
+  end
+
+  def self.device(window_size=1024)
+    Rx::Observable.create do |observer|
+      dev = CoreAudio.default_input_device
+      inbuf = dev.input_buffer(window_size)
+      inbuf.start
+
+      channels = dev.input_stream.channels
+      buf = RubyAudio::Buffer.float(window_size, channels)
+
+      loop {
+        na = inbuf.read(window_size)
+        window_size.times {|i|
+          buf[i] = na[(na.dim*i)...(na.dim*(i+1))].to_a.map{|s| s / 0x7FFF.to_f}
+        }
+        observer.on_next(buf)
+      }
       observer.on_completed
     end.publish
   end
@@ -138,6 +159,7 @@ module Rx::Observable
     self
   end
 end
+
 
 class AGain
   def initialize(level)
