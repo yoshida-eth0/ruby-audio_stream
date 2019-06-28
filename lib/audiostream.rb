@@ -161,6 +161,7 @@ class AudioOutputDevice < AudioOutput
   def initialize(window_size=1024)
     super()
     dev = CoreAudio.default_output_device
+    @channels = dev.output_stream.channels
     @buf = dev.output_buffer(window_size)
     @buf.start
   end
@@ -170,10 +171,17 @@ class AudioOutputDevice < AudioOutput
     window_size = a.map(&:size).max
     channels = a.first&.channels
 
-    na = NArray.sint(channels, window_size)
+    case @channels
+    when 1
+      a = a.map {|x| StereoToMono.new.process(x)}
+    when 2
+      a = a.map {|x| MonoToStereo.new.process(x)}
+    end
+
+    na = NArray.sint(@channels, window_size)
     a.each {|x|
       xa = x.to_a.flatten.map{|f| (f*0x7FFF).round}
-      na2 = NArray.sint(channels, window_size)
+      na2 = NArray.sint(@channels, window_size)
       na2[0...xa.length] = xa
       na += na2
     }
@@ -237,6 +245,21 @@ class StereoToMono
   end
 end
 
+class MonoToStereo
+  def process(input)
+    case input.channels
+    when 1
+      output = RubyAudio::Buffer.float(input.size, 2)
+      input.each_with_index {|f, i|
+        output[i] = [f, f]
+      }
+      output
+    when 2
+      input
+    end
+  end
+end
+
 class Tuner
 
   Tune = Struct.new("Tune", :freq, :note_num, :note, :octave, :diff, :gain, keyword_init: true)
@@ -250,9 +273,9 @@ class Tuner
 
   NOTE_TABLE = ["A", "A#/Bb", "B", "C", "C#/Db", "D", "D#/Eb", "E", "F", "F#/Gb", "G", "G#/Ab"].freeze
     
-  def initialize(soundinfo)
-    @window = HanningWindow.new
+  def initialize(soundinfo, window: nil)
     @samplerate = soundinfo.samplerate
+    @window = window || HanningWindow.new
   end
 
   def process(input)
@@ -344,16 +367,53 @@ class HanningWindow
     window_max = input.size - 1
     channels = input.channels
 
+    period = 2 * Math::PI / window_max
+
     case channels
     when 1
       window_size.times {|i|
-        input[i] *= 0.5 - 0.5 * Math.cos(2 * Math::PI * i / window_max)
+        input[i] *= 0.5 - 0.5 * Math.cos(i * period)
       }
     when 2
       window_size.times {|i|
-        gain = 0.5 - 0.5 * Math.cos(2 * Math::PI * i / window_max)
+        gain = 0.5 - 0.5 * Math.cos(i * period)
         input[i] = input[i].map {|f| f * gain}
       }
     end
+  end
+end
+
+class Tremolo
+  def initialize(soundinfo)
+    @samplerate = soundinfo.samplerate
+    @freq = 8
+    @depth = 0.8
+    @phase = 0
+  end
+
+  def process(input)
+    output = input.clone
+    process!(output)
+    output
+  end
+
+  def process!(input)
+    window_size = input.size
+    channels = input.channels
+
+    period = 2 * Math::PI * @freq / @samplerate
+
+    case channels
+    when 1
+      input.each_with_index {|f, i|
+        input[i] *= 1.0 + @depth * Math.sin((i + @phase) * period)
+      }
+    when 2
+      input.each_with_index {|fa, i|
+        gain = 1.0 + @depth * Math.sin((i + @phase) * period)
+        input[i] = fa.map {|f| f * gain}
+      }
+    end
+    @phase += window_size
   end
 end
