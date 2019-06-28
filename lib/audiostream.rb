@@ -71,7 +71,7 @@ class AudioInput
     end.publish
   end
 
-  def self.empty(window_size: 1024, soundinfo:)
+  def self.empty(window_size=1024, soundinfo:)
     Rx::Observable.create do |observer|
       buf = RubyAudio::Buffer.float(window_size, soundinfo.channels)
       observer.on_next(buf)
@@ -158,10 +158,10 @@ class AudioOutputFile < AudioOutput
 end
 
 class AudioOutputDevice < AudioOutput
-  def initialize
+  def initialize(window_size=1024)
     super()
     dev = CoreAudio.default_output_device
-    @buf = dev.output_buffer(1024)
+    @buf = dev.output_buffer(window_size)
     @buf.start
   end
 
@@ -308,7 +308,7 @@ class Tuner
 
   def struct(freq)
     index = FREQ_TABLE.bsearch_index {|x| x>=freq}
-    if !index || FREQ_TABLE.length<=index
+    if !index || FREQ_TABLE.length<=index+1
       return Tune.new
     end
 
