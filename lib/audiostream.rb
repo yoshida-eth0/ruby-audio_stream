@@ -1,8 +1,9 @@
-require 'coreaudio'
 require 'ruby-audio'
-require 'fftw3'
+require 'coreaudio'
+require 'numru/fftw3'
 require 'rx'
 
+include NumRu
 
 class AudioInput
 
@@ -44,20 +45,22 @@ class AudioInput
     end.publish
   end
 
-  def self.sin(hz, repeat, window_size: 1024, channels: 1)
+  def self.sin(hz, repeat, window_size=1024, soundinfo:)
     Rx::Observable.create do |observer|
-      buf = RubyAudio::Buffer.float(window_size, channels)
+      buf = RubyAudio::Buffer.float(window_size, soundinfo.channels)
+
+      phase = hz.to_f / soundinfo.samplerate * 2 * Math::PI
       offset = 0
 
       repeat.times.each {|_|
-        case channels
+        case soundinfo.channels
         when 1
           window_size.times.each {|i|
-            buf[i] = Math.sin(hz / 44100.0 * 2 * Math::PI * (i + offset))
+            buf[i] = Math.sin(phase * (i + offset))
           }
         when 2
           window_size.times.each {|i|
-            val = Math.sin(hz / 44100.0 * 2 * Math::PI * (i + offset))
+            val = Math.sin(phase * (i + offset))
             buf[i] = [val, val]
           }
         end
@@ -68,9 +71,9 @@ class AudioInput
     end.publish
   end
 
-  def self.empty(window_size: 1024, channels: 1)
+  def self.empty(window_size: 1024, soundinfo:)
     Rx::Observable.create do |observer|
-      buf = RubyAudio::Buffer.float(window_size, channels)
+      buf = RubyAudio::Buffer.float(window_size, soundinfo.channels)
       observer.on_next(buf)
       observer.on_completed
     end.publish
@@ -97,15 +100,25 @@ class AudioBus < Rx::Subject
 end
 
 class AudioOutput < AudioBus
-  def initialize(out)
+  def self.file(fname, soundinfo)
+    AudioOutputFile.new(fname, soundinfo)
+  end
+
+  def self.device
+    AudioOutputDevice.new
+  end
+end
+
+class AudioOutputFile < AudioOutput
+  def initialize(fname, soundinfo)
     super()
-    @out = out
+    @sound = RubyAudio::Sound.open(fname, "w", soundinfo)
   end
 
   def on_next(a)
     a = [a].flatten
     window_size = a.map(&:size).max
-    channels = a.first&.channels || 1
+    channels = a.first&.channels
     buf = RubyAudio::Buffer.float(window_size, channels)
 
     case channels
@@ -130,22 +143,49 @@ class AudioOutput < AudioBus
         }
       }
     end
-    @out.write(buf)
+    @sound.write(buf)
   end
 
   def on_error(error)
     puts error
     puts error.backtrace.join("\n")
-    @out.close
+    @sound.close
   end
 
   def on_completed
-    @out.close
+    @sound.close
+  end
+end
+
+class AudioOutputDevice < AudioOutput
+  def initialize
+    super()
+    dev = CoreAudio.default_output_device
+    @buf = dev.output_buffer(1024)
+    @buf.start
   end
 
-  def self.file(fname, soundinfo)
-    sound = RubyAudio::Sound.open(fname, "w", soundinfo)
-    new(sound)
+  def on_next(a)
+    a = [a].flatten
+    window_size = a.map(&:size).max
+    channels = a.first&.channels
+
+    na = NArray.sint(channels, window_size)
+    a.each {|x|
+      xa = x.to_a.flatten.map{|f| (f*0x7FFF).round}
+      na2 = NArray.sint(channels, window_size)
+      na2[0...xa.length] = xa
+      na += na2
+    }
+    @buf << na
+  end
+
+  def on_error(error)
+    puts error
+    puts error.backtrace.join("\n")
+  end
+
+  def on_completed
   end
 end
 
@@ -179,5 +219,141 @@ class AGain
       }
     end
     output
+  end
+end
+
+class StereoToMono
+  def process(input)
+    case input.channels
+    when 1
+      input
+    when 2
+      output = RubyAudio::Buffer.float(input.size, 1)
+      input.each_with_index {|fa, i|
+        output[i] = fa.sum / 2.0
+      }
+      output
+    end
+  end
+end
+
+class Tuner
+
+  Tune = Struct.new("Tune", :freq, :note_num, :note, :octave, :diff, :gain, keyword_init: true)
+
+  FREQ_TABLE = 10.times.map {|i|
+    a = 13.75 * 2 ** i
+    12.times.map {|j|
+      a * (2 ** (j / 12.0))
+    }
+  }.flatten.freeze
+
+  NOTE_TABLE = ["A", "A#/Bb", "B", "C", "C#/Db", "D", "D#/Eb", "E", "F", "F#/Gb", "G", "G#/Ab"].freeze
+    
+  def initialize(soundinfo)
+    @window = HanningWindow.new
+    @samplerate = soundinfo.samplerate
+  end
+
+  def process(input)
+    window_size = input.size
+
+    # mono window
+    input = StereoToMono.new.process(input)
+    @window.process!(input)
+
+    gain = input.to_a.flatten.max
+    freq = nil
+
+    if 0.01<gain
+      # fft
+      na = NArray.float(1, window_size)
+      na[0...na.size] = input.to_a
+      fft = FFTW3.fft(na, FFTW3::FORWARD)
+
+      amp = fft.map {|c|
+        c.real**2 + c.imag**2
+      }.real.to_a.flatten
+
+      # peak
+      i = amp.index(amp.max)
+
+      if window_size/2<i
+        j = window_size - i
+        if (amp[i]-amp[j]).abs<=0.0000001
+          i = j
+        end
+      end
+
+      # freq
+      freq_rate = @samplerate / window_size
+
+      if 0<i && i<window_size-1
+        freq_sum = amp[i-1] * (i-1) * freq_rate
+        freq_sum += amp[i] * i * freq_rate
+        freq_sum += amp[i+1] * (i+1) * freq_rate
+
+        amp_sum = amp[i-1] + amp[i] + amp[i+1]
+
+        freq = freq_sum / amp_sum
+      else
+        freq = i * freq_rate
+      end
+
+      struct(freq)
+    else
+      Tune.new
+    end
+  end
+
+  def struct(freq)
+    index = FREQ_TABLE.bsearch_index {|x| x>=freq}
+    if !index || FREQ_TABLE.length<=index
+      return Tune.new
+    end
+
+    if 0<index && freq-FREQ_TABLE[index-1] < FREQ_TABLE[index]-freq
+      diff = (freq-FREQ_TABLE[index-1]) / (FREQ_TABLE[index]-FREQ_TABLE[index-1]) * 100
+      index -= 1
+    else
+      diff = (freq-FREQ_TABLE[index]) / (FREQ_TABLE[index+1]-FREQ_TABLE[index]) * 100
+    end
+    note_num = index + 9
+    note = NOTE_TABLE[index%12]
+    octave = (index-3)/12
+
+    Tune.new(
+      freq: freq,
+      note_num: note_num,
+      note: note,
+      octave: octave,
+      diff: diff
+    )
+  end
+end
+
+class HanningWindow
+  def process(input)
+    output = input.clone
+    process!(output)
+    output
+  end
+
+  def process!(input)
+    window_size = input.size
+    window_max = input.size - 1
+    channels = input.channels
+
+    case channels
+    when 1
+      window_size.times {|i|
+        input[i] *= 0.5 - 0.5 * Math.cos(2 * Math::PI * i / window_max)
+      }
+    when 2
+      window_size.times {|i|
+        gain = 0.5 - 0.5 * Math.cos(2 * Math::PI * i / window_max)
+        input[i] = input[i].map {|f| f * gain}
+      }
+    end
   end
 end
