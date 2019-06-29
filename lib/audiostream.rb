@@ -384,10 +384,10 @@ class HanningWindow
 end
 
 class Tremolo
-  def initialize(soundinfo)
+  def initialize(soundinfo, freq:, depth:)
     @samplerate = soundinfo.samplerate
-    @freq = 8
-    @depth = 0.8
+    @freq = freq.to_f
+    @depth = depth.to_f
     @phase = 0
   end
 
@@ -414,6 +414,6 @@ class Tremolo
         input[i] = fa.map {|f| f * gain}
       }
     end
-    @phase += window_size
+    @phase = (@phase + window_size) % (window_size / period)
   end
 end
