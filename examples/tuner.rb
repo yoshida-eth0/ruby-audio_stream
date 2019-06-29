@@ -1,4 +1,7 @@
-require_relative '../lib/audiostream'
+require 'audio_stream/core_ext'
+
+include AudioStream
+include AudioStream::Fx
 
 
 soundinfo = RubyAudio::SoundInfo.new(
