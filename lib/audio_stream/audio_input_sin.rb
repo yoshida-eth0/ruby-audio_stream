@@ -28,10 +28,10 @@ module AudioStream
               buf[i] = [val, val]
             }
           end
-          @offset += @window_size
-          y << buf
+          offset += @window_size
+          y << buf.clone
         }
-      end
+      end.each(&block)
     end
   end
 end

@@ -12,13 +12,13 @@ module AudioStream
 
         case channels
         when 1
-          window_size.times {|i|
+          input.each_with_index {|f, i|
             input[i] *= 0.5 - 0.5 * Math.cos(i * period)
           }
         when 2
-          window_size.times {|i|
+          input.each_with_index {|fa, i|
             gain = 0.5 - 0.5 * Math.cos(i * period)
-            input[i] = input[i].map {|f| f * gain}
+            input[i] = fa.map {|f| f * gain}
           }
         end
       end

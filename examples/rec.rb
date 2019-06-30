@@ -11,8 +11,9 @@ soundinfo = RubyAudio::SoundInfo.new(
   samplerate: 44100,
   format: RubyAudio::FORMAT_WAV|RubyAudio::FORMAT_PCM_16
 )
-stereo_out = AudioOutput.file("out.wav", soundinfo)
+stereo_out = AudioOutput.file("out.wav", soundinfo).stream
 
-track1.send_to(stereo_out)
+track1
+  .send_to(stereo_out)
 
 track1.connect

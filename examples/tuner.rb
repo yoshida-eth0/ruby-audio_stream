@@ -12,8 +12,8 @@ soundinfo = RubyAudio::SoundInfo.new(
 
 # Track
 
-#track1 = AudioInput.sin(454.0, 100, 2048, soundinfo: soundinfo)
-track1 = AudioInput.device
+#track1 = AudioInput.sin(454.0, 100, 2048, soundinfo: soundinfo).stream
+track1 = AudioInput.device.stream
 
 
 # Audio FX

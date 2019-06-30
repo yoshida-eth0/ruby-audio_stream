@@ -11,7 +11,7 @@ module AudioStream
       Enumerator.new do |y|
         buf = RubyAudio::Buffer.float(@window_size, @sound.info.channels)
         while @sound.read(buf)!=0
-          y << buf
+          y << buf.clone
         end
       end.each(&block)
     end

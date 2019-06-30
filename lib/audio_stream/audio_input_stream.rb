@@ -1,5 +1,7 @@
 module AudioStream
   module AudioInputStream
+    include Enumerable
+
     def stream
       Rx::Observable.create do |observer|
         each {|buf|

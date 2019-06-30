@@ -2,6 +2,7 @@ require 'audio_stream/fx/bang_process'
 
 require 'audio_stream/fx/a_gain'
 require 'audio_stream/fx/tremolo'
+require 'audio_stream/fx/convolution_reverb'
 require 'audio_stream/fx/hanning_window'
 
 require 'audio_stream/fx/stereo_to_mono'
