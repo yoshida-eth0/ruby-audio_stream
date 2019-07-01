@@ -52,7 +52,7 @@ module AudioStream
           raise "channels is not match: impulse.channels=#{@channels} input.channels=#{input.channels}"
         end
 
-        # add current wet
+        # current dry to wet
         na = NArray.float(@channels, @window_size*2)
 
         prev_flat = @prev_input.to_a.flatten
@@ -68,15 +68,15 @@ module AudioStream
         @wet_fft_matrix.shift
         @prev_input = input.clone
 
-        # wet matrix sum
+        # calc wet matrix sum
         wet_fft = NArray.float(@channels, @window_size*2)
         @impulse_size.times {|i|
           wet_fft += @wet_fft_matrix[i][@impulse_size-i-1]
         }
 
-        # calc current wet
         wet_na = FFTW3.fft(wet_fft, FFTW3::BACKWARD)  / @impulse_max_gain * @wet_gain
 
+        # current dry + wet matrix sum
         case @channels
         when 1
           @window_size.times {|i|
