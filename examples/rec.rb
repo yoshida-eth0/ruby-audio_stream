@@ -4,14 +4,14 @@ include AudioStream
 include AudioStream::Fx
 
 
-track1 = AudioInput.device
+track1 = AudioInput.device.stream
 
 soundinfo = RubyAudio::SoundInfo.new(
   channels: 2,
   samplerate: 44100,
   format: RubyAudio::FORMAT_WAV|RubyAudio::FORMAT_PCM_16
 )
-stereo_out = AudioOutput.file("out.wav", soundinfo).stream
+stereo_out = AudioOutput.file("out.wav", soundinfo)
 
 track1
   .send_to(stereo_out)

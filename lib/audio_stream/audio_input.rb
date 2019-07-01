@@ -11,7 +11,7 @@ module AudioStream
     end
 
     def self.device(window_size=1024)
-      AudioInputDevice.new(window_size)
+      AudioInputDevice.default_device(window_size)
     end
 
     def self.sin(hz, repeat, window_size=1024, soundinfo:)
