@@ -1,10 +1,15 @@
 module AudioStream
   class AudioOutputDevice < AudioOutput
-    def initialize(window_size=1024)
+    attr_reader :dev
+
+    def initialize(dev, window_size=1024)
       super()
-      dev = CoreAudio.default_output_device
+      @dev = dev
       @channels = dev.output_stream.channels
       @buf = dev.output_buffer(window_size)
+    end
+
+    def connect
       @buf.start
     end
 
@@ -36,6 +41,21 @@ module AudioStream
     end
 
     def on_completed
+    end
+
+    def self.default_device(window_size=1024)
+      dev = CoreAudio.default_output_device
+      new(dev, window_size)
+    end
+
+    def self.devices(window_size=1024)
+      CoreAudio.devices
+        .select{|dev|
+          0<dev.output_stream.channels
+        }
+        .map {|dev|
+          new(dev, window_size)
+        }
     end
   end
 end

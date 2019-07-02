@@ -4,8 +4,8 @@ module AudioStream
       AudioOutputFile.new(fname, soundinfo)
     end
 
-    def self.device
-      AudioOutputDevice.new
+    def self.device(window_size=1024)
+      AudioOutputDevice.default_device(window_size)
     end
   end
 end

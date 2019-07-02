@@ -50,5 +50,8 @@ bus1
 
 # start
 
-[track1, track2, track3].map(&:connect)
-
+[track1, track2, track3, stereo_out].map {|stream|
+  Thread.start(stream) {|stream|
+    stream.connect
+  }
+}.map(&:join)
