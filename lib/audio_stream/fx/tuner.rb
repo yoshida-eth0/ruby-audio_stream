@@ -14,7 +14,7 @@ module AudioStream
       NOTE_TABLE = ["A", "A#/Bb", "B", "C", "C#/Db", "D", "D#/Eb", "E", "F", "F#/Gb", "G", "G#/Ab"].freeze
         
       def initialize(soundinfo, window: nil)
-        @samplerate = soundinfo.samplerate
+        @samplerate = soundinfo.samplerate.to_f
         @window = window || HanningWindow.new
       end
 
@@ -32,7 +32,7 @@ module AudioStream
           # fft
           na = NArray.float(1, window_size)
           na[0...na.size] = input.to_a
-          fft = FFTW3.fft(na, FFTW3::FORWARD)
+          fft = FFTW3.fft(na, FFTW3::FORWARD) / na.length
 
           amp = fft.map {|c|
             c.real**2 + c.imag**2
