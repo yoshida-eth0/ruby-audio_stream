@@ -9,7 +9,7 @@ module AudioStream
 
     def each(&block)
       Enumerator.new do |y|
-        buf = RubyAudio::Buffer.float(@window_size, @sound.info.channels)
+        buf = Buffer.float(@window_size, @sound.info.channels)
         while @sound.read(buf)!=0
           y << buf.clone
         end

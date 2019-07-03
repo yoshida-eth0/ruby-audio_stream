@@ -13,7 +13,7 @@ module AudioStream
         @inbuf.start
 
         channels = @dev.input_stream.channels
-        buf = RubyAudio::Buffer.float(@window_size, channels)
+        buf = Buffer.float(@window_size, channels)
 
         loop {
           na = @inbuf.read(@window_size)

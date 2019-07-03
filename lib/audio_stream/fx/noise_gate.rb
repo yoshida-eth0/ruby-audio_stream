@@ -29,6 +29,7 @@ module AudioStream
         case channels
         when 1
           window_size.times {|i|
+            input[i] = wet_na[i].real
           }
         when 2
           window_size.times {|i|

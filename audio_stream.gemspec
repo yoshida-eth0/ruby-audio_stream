@@ -36,4 +36,5 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "coreaudio", "~> 0.0.12"
   spec.add_development_dependency "ruby-fftw3", "~> 1.0.2"
   spec.add_development_dependency "rx", "~> 0.0.3"
+  spec.add_development_dependency "rbplotly", "~> 0.1.2"
 end

@@ -11,7 +11,7 @@ module AudioStream
 
     def each(&block)
       Enumerator.new do |y|
-        buf = RubyAudio::Buffer.float(@window_size, @soundinfo.channels)
+        buf = Buffer.float(@window_size, @soundinfo.channels)
 
         phase = @hz.to_f / @soundinfo.samplerate * 2 * Math::PI
         offset = 0

@@ -1,26 +1,26 @@
 module AudioStream
   module Fx
-    class LowPassFilter < Filter
+    class BandPassFilter < Filter
 
-      def initialize(soundinfo, freq:, q: nil)
+      def initialize(soundinfo, freq:, bandwidth: 1.0)
         super()
         @samplerate = soundinfo.samplerate.to_f
         @freq = freq
-        @q = q || 1.0 / Math.sqrt(2)
+        @bandwidth = bandwidth
 
         filter_coef
       end
 
       def filter_coef
         omega = 2.0 * Math::PI * @freq / @samplerate
-        alpha = Math.sin(omega) / (2.0 * @q)
+        alpha = Math.sin(omega) * Math.sinh(Math.log(2.0) / 2.0 * @bandwidth * omega / Math.sin(omega))
 
         a0 = 1.0 + alpha
         a1 = -2.0 * Math.cos(omega)
         a2 = 1.0 - alpha
-        b0 = (1.0 - Math.cos(omega)) / 2.0 
-        b1 = 1.0 - Math.cos(omega)
-        b2 = (1.0 - Math.cos(omega)) / 2.0 
+        b0 = alpha
+        b1 = 0.0
+        b2 = -alpha
 
         @filter_coef = FilterCoef.new(a0, a1, a2, b0, b1, b2)
       end
