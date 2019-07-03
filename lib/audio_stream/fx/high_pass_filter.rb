@@ -1,6 +1,6 @@
 module AudioStream
   module Fx
-    class HighPassFilter < Filter
+    class HighPassFilter < BiquadFilter
 
       def initialize(soundinfo, freq:, q: nil)
         super()

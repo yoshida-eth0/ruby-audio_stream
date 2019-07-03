@@ -5,6 +5,7 @@ require 'rx'
 require 'rbplotly'
 
 require 'audio_stream/version'
+require 'audio_stream/error'
 require 'audio_stream/buffer'
 require 'audio_stream/audio_input'
 require 'audio_stream/audio_input_stream'

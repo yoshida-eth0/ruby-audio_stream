@@ -1,6 +1,6 @@
 module AudioStream
   module Fx
-    class BandPassFilter < Filter
+    class BandPassFilter < BiquadFilter
 
       def initialize(soundinfo, freq:, bandwidth: 1.0)
         super()

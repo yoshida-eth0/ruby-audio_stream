@@ -1,6 +1,6 @@
 module AudioStream
   module Fx
-    class LowShelfFilter < Filter
+    class LowShelfFilter < BiquadFilter
 
       def initialize(soundinfo, freq:, q: nil, gain: 1.0)
         super()

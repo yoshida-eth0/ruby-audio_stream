@@ -4,6 +4,50 @@ module AudioStream
       Plot.new(self, soundinfo)
     end
 
+    def +(other)
+      unless RubyAudio::Buffer===other
+        raise Error, "right operand is not Buffer: #{other}"
+      end
+      if self.size!=other.size
+        raise Error, "Buffer.size is not match: self.size=#{self.size} other.size=#{other.size}"
+      end
+
+      channels = [self.channels, other.channels].max
+      window_size = self.size
+
+      buf = Buffer.float(window_size, channels)
+
+      case channels
+      when 1
+        [self, other].each {|x|
+          x.size.times.each {|i|
+            if buf[i]
+              buf[i] += x[i]
+            else
+              buf[i] = x[i]
+            end
+          }
+        }
+      when 2
+        m2s = MonoToStereo.new
+        a = [
+          m2s.process(self),
+          m2s.process(other),
+        ]
+        a.each {|x|
+          x.size.times.each {|i|
+            if buf[i]
+              buf[i] = buf[i].zip(x[i]).map {|a| a[0] + a[1]}
+            else
+              buf[i] = x[i]
+            end
+          }
+        }
+      end
+
+      buf
+    end
+
     def to_na
       window_size = self.size
       channels = self.channels

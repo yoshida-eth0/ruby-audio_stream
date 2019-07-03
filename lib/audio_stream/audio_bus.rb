@@ -12,7 +12,7 @@ class AudioBus < Rx::Subject
       @detach.unsubscribe
     end
 
-    @zip_observable = Rx::Observable.zip(*@observables)
+    @zip_observable = Rx::Observable.zip(*@observables).map{|a| a.inject(:+)}
     @detach = @zip_observable.subscribe(self)
   end
 end

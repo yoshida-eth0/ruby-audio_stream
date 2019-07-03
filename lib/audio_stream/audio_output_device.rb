@@ -13,25 +13,20 @@ module AudioStream
       @buf.start
     end
 
-    def on_next(a)
-      a = [a].flatten
-      window_size = a.map(&:size).max
-      channels = a.first&.channels
+    def on_next(input)
+      window_size = input.size
+      channels = input.channels
 
       case @channels
       when 1
-        a = a.map {|x| StereoToMono.new.process(x)}
+        input = StereoToMono.new.process(input)
       when 2
-        a = a.map {|x| MonoToStereo.new.process(x)}
+        input = MonoToStereo.new.process(input)
       end
 
+      sint_a = input.to_a.flatten.map{|f| (f*0x7FFF).round}
       na = NArray.sint(@channels, window_size)
-      a.each {|x|
-        xa = x.to_a.flatten.map{|f| (f*0x7FFF).round}
-        na2 = NArray.sint(@channels, window_size)
-        na2[0...xa.length] = xa
-        na += na2
-      }
+      na[0...sint_a.length] = sint_a
       @buf << na
     end
 
