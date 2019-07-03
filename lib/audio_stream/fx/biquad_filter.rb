@@ -16,6 +16,7 @@ module AudioStream
       end
 
       def filter_coef
+        raise Error, "#{self.class.name}.filter_coef is not implemented"
       end
 
       def process!(input)
