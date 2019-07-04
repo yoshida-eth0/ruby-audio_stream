@@ -1,10 +1,15 @@
 module AudioStream
   class AudioInputDevice < AudioInput
-    include AudioInputStream
+
+    attr_reader :dev
 
     def initialize(dev, window_size=1024)
       @dev = dev
       @window_size = window_size
+    end
+
+    def name
+      @dev.name
     end
 
     def each(&block)

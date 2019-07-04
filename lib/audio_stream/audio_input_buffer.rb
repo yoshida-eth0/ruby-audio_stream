@@ -1,9 +1,12 @@
 module AudioStream
   class AudioInputBuffer < AudioInput
-    include AudioInputStream
 
     def initialize(buffers)
       @buffers = buffers
+    end
+
+    def name
+      "Buffer"
     end
 
     def each(&block)

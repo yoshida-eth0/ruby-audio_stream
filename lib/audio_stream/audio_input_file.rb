@@ -2,9 +2,14 @@ module AudioStream
   class AudioInputFile < AudioInput
     include AudioInputStream
 
-    def initialize(fname, window_size=1024)
-      @sound = RubyAudio::Sound.open(fname)
+    def initialize(path, window_size=1024)
+      @path = path
+      @sound = RubyAudio::Sound.open(path)
       @window_size = window_size
+    end
+
+    def name
+      @name
     end
 
     def each(&block)

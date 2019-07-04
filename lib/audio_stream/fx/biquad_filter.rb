@@ -38,6 +38,8 @@ module AudioStream
             }
           }
         end
+
+        input
       end
 
       def process_one(in0, b)

@@ -1,6 +1,17 @@
 module AudioStream
 
   class AudioInput
+    include Enumerable
+
+    def stream
+      Rx::Observable.create do |observer|
+        each {|buf|
+          observer.on_next(buf)
+        }
+        observer.on_completed
+      end.publish
+    end
+
 
     def self.file(fname, window_size=1024)
       AudioInputFile.new(fname, window_size)

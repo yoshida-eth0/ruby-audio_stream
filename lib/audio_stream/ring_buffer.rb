@@ -23,7 +23,7 @@ module AudioStream
       self[@seek] = val
     end
 
-    def next
+    def rotate
       @seek = (@seek + 1) % self.size
     end
   end

@@ -1,12 +1,15 @@
 module AudioStream
   class AudioInputSin < AudioInput
-    include AudioInputStream
 
     def initialize(hz, repeat, window_size=1024, soundinfo:)
       @hz = hz
       @repeat = repeat
       @window_size = window_size
       @soundinfo = soundinfo
+    end
+
+    def name
+      "SinWave"
     end
 
     def each(&block)

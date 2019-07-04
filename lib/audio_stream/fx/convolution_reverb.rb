@@ -68,7 +68,7 @@ module AudioStream
         @wet_ffts.current = @impulse_ffts.map {|impulse_fft|
           input_fft * impulse_fft
         }
-        @wet_ffts.next
+        @wet_ffts.rotate
         @prev_input = input.clone
 
         # calc wet matrix sum
