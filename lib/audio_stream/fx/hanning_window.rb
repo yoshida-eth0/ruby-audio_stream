@@ -21,6 +21,8 @@ module AudioStream
             input[i] = fa.map {|f| f * gain}
           }
         end
+
+        input
       end
     end
   end

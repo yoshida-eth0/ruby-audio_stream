@@ -3,13 +3,14 @@ module AudioStream
     class ConvolutionReverb
       include BangProcess
 
-      def initialize(impulse, dry: 0.5, wet: 0.5)
+      def initialize(impulse, dry: 0.5, wet: 0.5, window: nil)
         impulse_bufs = impulse.to_a
         @impulse_size = impulse_bufs.size
         @channels = impulse_bufs[0].channels
         @window_size = impulse_bufs[0].size
         @dry_gain = dry
         @wet_gain = wet
+        @window = window || HanningWindow.new
 
         zero_buf = RubyAudio::Buffer.float(@window_size, @channels)
         if @channels==1
@@ -25,19 +26,19 @@ module AudioStream
           na = NArray.float(@channels, @window_size*2)
 
           buf1 = impulse_bufs[i]
-          buf1 = buf1.to_a.flatten
-          na[0...buf1.size] = buf1
+          buf1_flat = buf1.to_a.flatten
+          na[0...buf1_flat.size] = buf1_flat
 
           buf2 = impulse_bufs[i+1]
-          buf2 = buf2.to_a.flatten
-          na[buf1.size...(buf1.size+buf2.size)] = buf2
+          buf2_flat = buf2.to_a.flatten
+          na[buf1.size...(buf1.size+buf2_flat.size)] = buf2_flat
 
-          @impulse_ffts << FFTW3.fft(na, FFTW3::FORWARD)
+          @impulse_ffts << FFTW3.fft(na, FFTW3::FORWARD) / na.length
         }
 
         @impulse_max_gain =  @impulse_ffts.map{|c| c.real**2 + c.imag**2}.map(&:sum).max / @channels
 
-        @wet_fft_matrix = Array.new(@impulse_size) {
+        @wet_ffts = RingBuffer.new(@impulse_size) {
           Array.new(@impulse_size, NArray.float(@channels, @window_size*2))
         }
 
@@ -59,22 +60,24 @@ module AudioStream
         na[0...prev_flat.size] = prev_flat
 
         input_flat = input.to_a.flatten
-        na[prev_flat.size...(prev_flat.size+input_flat.size)] = input_flat
+        na[@prev_input.size...(@prev_input.size+input_flat.size)] = input_flat
 
-        input_fft = FFTW3.fft(na, FFTW3::FORWARD)
-        @wet_fft_matrix << @impulse_ffts.map {|impulse_fft|
+        na = @window.process!(Buffer.from_na(na)).to_na
+        input_fft = FFTW3.fft(na, FFTW3::FORWARD) / na.length
+
+        @wet_ffts.current = @impulse_ffts.map {|impulse_fft|
           input_fft * impulse_fft
         }
-        @wet_fft_matrix.shift
+        @wet_ffts.next
         @prev_input = input.clone
 
         # calc wet matrix sum
-        wet_fft = NArray.float(@channels, @window_size*2)
-        @impulse_size.times {|i|
-          wet_fft += @wet_fft_matrix[i][@impulse_size-i-1]
+        wet_fft = NArray.complex(@channels, @window_size*2)
+        @wet_ffts.ring.each_with_index {|wet, i|
+          wet_fft += wet[@impulse_size-i-1]
         }
 
-        wet_na = FFTW3.fft(wet_fft, FFTW3::BACKWARD)  / @impulse_max_gain * @wet_gain
+        wet_na = FFTW3.fft(wet_fft, FFTW3::BACKWARD)[(@channels*@window_size)...(@channels*@window_size*2)] * (@wet_gain / @impulse_max_gain)
 
         # current dry + wet matrix sum
         case @channels
