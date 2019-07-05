@@ -24,7 +24,7 @@ stereo_out = AudioOutput.device
 track1
   .fx(MonoToStereo.new)
   .fx(chorus)
-  .send_to(bus1)
+  .send_to(bus1, gain: 1.0, pan: 0.0)
 
 bus1
   .send_to(stereo_out)

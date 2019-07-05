@@ -6,8 +6,8 @@ module Rx::Observable
     map(&effector.method(:process))
   end
 
-  def send_to(bus)
-    bus.add(self)
+  def send_to(bus, gain: nil, pan: nil)
+    bus.add(self, gain: gain, pan: pan)
     self
   end
 end

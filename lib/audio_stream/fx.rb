@@ -1,6 +1,7 @@
 require 'audio_stream/fx/bang_process'
 
 require 'audio_stream/fx/a_gain'
+require 'audio_stream/fx/panning'
 require 'audio_stream/fx/distortion'
 require 'audio_stream/fx/noise_gate'
 require 'audio_stream/fx/compressor'

@@ -16,4 +16,8 @@ stereo_out = AudioOutput.file("out.wav", soundinfo)
 track1
   .send_to(stereo_out)
 
-track1.connect
+[track1].map {|stream|
+  Thread.start(stream) {|stream|
+    stream.connect
+  }
+}.map(&:join)

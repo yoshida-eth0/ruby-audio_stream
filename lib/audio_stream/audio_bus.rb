@@ -6,7 +6,15 @@ class AudioBus < Rx::Subject
     @detach = nil
   end
 
-  def add(observable)
+  def add(observable, gain:, pan:)
+    if gain && gain!=1.0
+      observable = observable.map(&AGain.new(level: gain).method(:process))
+    end
+
+    if pan && pan!=0.0
+      observable = observable.map(&Panning.new(pan: pan).method(:process))
+    end
+
     @observables << observable
     if @detach
       @detach.unsubscribe
