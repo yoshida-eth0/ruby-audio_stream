@@ -11,6 +11,11 @@ module AudioStream
       @name
     end
 
+    def seek(frames, whence=IO::SEEK_SET)
+      @sound.seek(frames, whence)
+      self
+    end
+
     def each(&block)
       Enumerator.new do |y|
         buf = Buffer.float(@window_size, @sound.info.channels)

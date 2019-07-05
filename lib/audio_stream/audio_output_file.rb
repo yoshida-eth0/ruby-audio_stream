@@ -5,6 +5,9 @@ module AudioStream
       @sound = RubyAudio::Sound.open(fname, "w", soundinfo)
     end
 
+    def connect
+    end
+
     def on_next(a)
       a = [a].flatten
       window_size = a.map(&:size).max

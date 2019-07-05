@@ -31,7 +31,7 @@ module AudioStream
         when 2
           input.each_with_index {|fa, i|
             l = (fa[0] * @l_gain + fa[1] * @lr_gain) / @normalize
-            r = (fa[1] * @r_gain + fa[0] + @rl_gain) / @normalize
+            r = (fa[1] * @r_gain + fa[0] * @rl_gain) / @normalize
             input[i] = [l, r]
           }
         end

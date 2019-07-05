@@ -10,7 +10,8 @@ track1 = $input_stream
 
 noise_gate = Compressor.new(threshold: 0.1, ratio: 10.0)
 compressor = Compressor.new(threshold: 0.3, ratio: 0.5)
-distortion = Distortion.new(gain: 500, level:0.1)
+distortion = Distortion.new(gain: 300, level:0.1)
+eq_2band = Equalizer2band.new($soundinfo, lowgain: 0.0, highgain: -10.0)
 
 
 # Bus
