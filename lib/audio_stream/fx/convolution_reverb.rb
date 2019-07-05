@@ -83,14 +83,14 @@ module AudioStream
         case @channels
         when 1
           @window_size.times {|i|
-            dry = (input[i] || 0.0) * @dry_gain
+            dry = input[i] * @dry_gain
             wet = wet_na[i].real
             input[i] = dry + wet
           }
         when 2
           @window_size.times {|i|
             # dry
-            dry  = input[i] || [0.0, 0.0]
+            dry  = input[i]
             dry1 = dry[0] * @dry_gain
             dry2 = dry[1] * @dry_gain
 

@@ -10,7 +10,7 @@ track1 = $input_stream
 
 noise_gate = Compressor.new(threshold: 0.1, ratio: 10.0)
 compressor = Compressor.new(threshold: 0.3, ratio: 0.5)
-chorus = Chorus.new($soundinfo)
+chorus = Chorus.new($soundinfo, depth: 100, rate: 0.25)
 
 
 # Bus
@@ -22,6 +22,7 @@ stereo_out = AudioOutput.device
 # Mixer
 
 track1
+  .fx(MonoToStereo.new)
   .fx(chorus)
   .send_to(bus1)
 

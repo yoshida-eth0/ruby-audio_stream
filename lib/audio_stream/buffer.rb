@@ -21,13 +21,7 @@ module AudioStream
       when 1
         [self, other].each {|x|
           x.size.times.each {|i|
-            if x[i]
-              if buf[i]
-                buf[i] += x[i]
-              else
-                buf[i] = x[i]
-              end
-            end
+            buf[i] += x[i]
           }
         }
       when 2
@@ -38,13 +32,7 @@ module AudioStream
         ]
         a.each {|x|
           x.size.times.each {|i|
-            if x[i]
-              if buf[i]
-                buf[i] = buf[i].zip(x[i]).map {|a| a[0] + a[1]}
-              else
-                buf[i] = x[i]
-              end
-            end
+            buf[i] = buf[i].zip(x[i]).map {|a| a[0] + a[1]}
           }
         }
       end
@@ -83,6 +71,14 @@ module AudioStream
       end
 
       buf
+    end
+
+    [:short, :int, :float, :double].each do |type|
+      eval "def self.#{type}(frames, channels=1)
+              buf = self.new(:#{type}, frames, channels)
+              buf.real_size = buf.size
+              buf
+            end"
     end
   end
 end
