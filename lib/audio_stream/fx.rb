@@ -13,6 +13,7 @@ require 'audio_stream/fx/high_shelf_filter'
 require 'audio_stream/fx/equalizer_2band'
 require 'audio_stream/fx/tremolo'
 require 'audio_stream/fx/delay'
+require 'audio_stream/fx/chorus'
 require 'audio_stream/fx/convolution_reverb'
 require 'audio_stream/fx/hanning_window'
 

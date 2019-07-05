@@ -1,30 +1,39 @@
 module AudioStream
-  class RingBuffer < Array
+  class RingBuffer
+    include Enumerable
 
     def initialize(*args, &block)
-      super(*args, &block)
+      @array = Array.new(*args, &block)
       @seek = 0
     end
 
-    def ring(&block)
+    def each(&block)
       Enumerator.new do|y|
         start = @seek
-        self.size.times {|i|
-          y << self[(start+i)%self.size]
+        @array.size.times {|i|
+          y << self[i]
         }
       end.each(&block)
     end
 
+    def [](idx)
+      @array[(idx+@seek) % @array.size]
+    end
+
+    def []=(idx, val)
+      @array[(idx+@seek) % @array.size] = val
+    end
+
     def current
-      self[@seek]
+      self[0]
     end
 
     def current=(val)
-      self[@seek] = val
+      self[0] = val
     end
 
-    def rotate
-      @seek = (@seek + 1) % self.size
+    def rotate(step=1)
+      @seek = (@seek + step) % @array.size
     end
   end
 end

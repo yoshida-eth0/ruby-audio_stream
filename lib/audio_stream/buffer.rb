@@ -21,10 +21,12 @@ module AudioStream
       when 1
         [self, other].each {|x|
           x.size.times.each {|i|
-            if buf[i]
-              buf[i] += x[i]
-            else
-              buf[i] = x[i]
+            if x[i]
+              if buf[i]
+                buf[i] += x[i]
+              else
+                buf[i] = x[i]
+              end
             end
           }
         }
@@ -36,10 +38,12 @@ module AudioStream
         ]
         a.each {|x|
           x.size.times.each {|i|
-            if buf[i]
-              buf[i] = buf[i].zip(x[i]).map {|a| a[0] + a[1]}
-            else
-              buf[i] = x[i]
+            if x[i]
+              if buf[i]
+                buf[i] = buf[i].zip(x[i]).map {|a| a[0] + a[1]}
+              else
+                buf[i] = x[i]
+              end
             end
           }
         }

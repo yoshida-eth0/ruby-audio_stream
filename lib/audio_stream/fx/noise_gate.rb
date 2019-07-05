@@ -3,7 +3,7 @@ module AudioStream
     class NoiseGate
       include BangProcess
 
-      def initialize(threshold: 0.1)
+      def initialize(threshold: 0.01)
         @threshold = threshold
         @window = HanningWindow.new
       end
@@ -16,7 +16,7 @@ module AudioStream
         @window.process!(input)
         na = NArray.float(channels, window_size)
         na[0...na.size] = input.to_a.flatten
-        fft = FFTW3.fft(na, FFTW3::FORWARD)
+        fft = FFTW3.fft(na, FFTW3::FORWARD) / na.length
 
         fft.size.times {|i|
           if fft[i].abs < @threshold

@@ -12,7 +12,7 @@ module AudioStream
         @wet_gain = wet
         @window = window || HanningWindow.new
 
-        zero_buf = RubyAudio::Buffer.float(@window_size, @channels)
+        zero_buf = Buffer.float(@window_size, @channels)
         if @channels==1
           zero_buf.size.times {|i| zero_buf[i] = 0}
         else
@@ -73,7 +73,7 @@ module AudioStream
 
         # calc wet matrix sum
         wet_fft = NArray.complex(@channels, @window_size*2)
-        @wet_ffts.ring.each_with_index {|wet, i|
+        @wet_ffts.each_with_index {|wet, i|
           wet_fft += wet[@impulse_size-i-1]
         }
 

@@ -6,7 +6,7 @@ module AudioStream
         when 1
           input.clone
         when 2
-          output = RubyAudio::Buffer.float(input.size, 1)
+          output = Buffer.float(input.size, 1)
           input.each_with_index {|fa, i|
             output[i] = fa.sum / 2.0
           }

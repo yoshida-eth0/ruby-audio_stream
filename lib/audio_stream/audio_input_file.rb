@@ -1,6 +1,5 @@
 module AudioStream
   class AudioInputFile < AudioInput
-    include AudioInputStream
 
     def initialize(path, window_size=1024)
       @path = path

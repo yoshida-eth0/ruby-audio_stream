@@ -9,7 +9,7 @@ module AudioStream
       a = [a].flatten
       window_size = a.map(&:size).max
       channels = a.first&.channels
-      buf = RubyAudio::Buffer.float(window_size, channels)
+      buf = Buffer.float(window_size, channels)
 
       case channels
       when 1

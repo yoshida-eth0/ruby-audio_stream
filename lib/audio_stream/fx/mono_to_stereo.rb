@@ -4,7 +4,7 @@ module AudioStream
       def process(input)
         case input.channels
         when 1
-          output = RubyAudio::Buffer.float(input.size, 2)
+          output = Buffer.float(input.size, 2)
           input.each_with_index {|f, i|
             output[i] = [f, f]
           }
