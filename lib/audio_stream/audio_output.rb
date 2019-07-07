@@ -1,5 +1,11 @@
 module AudioStream
   class AudioOutput < AudioBus
+
+    def initialize
+      super()
+      @sync = Sync.new
+    end
+
     def self.file(fname, soundinfo)
       AudioOutputFile.new(fname, soundinfo)
     end

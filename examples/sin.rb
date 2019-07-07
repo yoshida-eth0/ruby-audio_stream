@@ -13,14 +13,14 @@ soundinfo = RubyAudio::SoundInfo.new(
 
 # Track
 
-track1 = AudioInput.sin(440.0, 100, soundinfo: soundinfo).stream
-track2 = AudioInput.sin(554.37, 100, soundinfo: soundinfo).stream
-track3 = AudioInput.sin(659.26, 100, soundinfo: soundinfo).stream
+track1 = AudioInput.sin(440.0, 100, soundinfo: soundinfo)
+track2 = AudioInput.sin(554.37, 100, soundinfo: soundinfo)
+track3 = AudioInput.sin(659.26, 100, soundinfo: soundinfo)
 
 
 # Audio FX
 
-gain = AGain.new(0.3)
+gain = AGain.new(level: 0.3)
 
 
 # Bus
@@ -33,14 +33,17 @@ bus1 = AudioBus.new
 # Mixer
 
 track1
+  .stream
   .fx(gain)
   .send_to(bus1)
 
 track2
+  .stream
   .fx(gain)
   .send_to(bus1)
 
 track3
+  .stream
   .fx(gain)
   .send_to(bus1)
 
@@ -50,8 +53,9 @@ bus1
 
 # start
 
-[track1, track2, track3, stereo_out].map {|stream|
-  Thread.start(stream) {|stream|
-    stream.connect
-  }
-}.map(&:join)
+conductor = Conductor.new(
+  input: [track1, track2, track3],
+  output: stereo_out
+)
+conductor.connect
+conductor.join

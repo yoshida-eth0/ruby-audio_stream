@@ -13,15 +13,23 @@ module AudioStream
       @buf.start
     end
 
+    def disconnect
+      @buf.stop
+    end
+
+    def join
+      @sync.yield_wait
+    end
+
     def on_next(input)
       window_size = input.size
       channels = input.channels
 
       case @channels
       when 1
-        input = StereoToMono.new.process(input)
+        input = Fx::StereoToMono.new.process(input)
       when 2
-        input = MonoToStereo.new.process(input)
+        input = Fx::MonoToStereo.new.process(input)
       end
 
       sint_a = input.to_a.flatten.map{|f| (f*0x7FFF).round}
@@ -36,6 +44,7 @@ module AudioStream
     end
 
     def on_completed
+      @sync.finish
     end
 
     def self.default_device(window_size=1024)

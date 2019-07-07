@@ -12,17 +12,12 @@ soundinfo = RubyAudio::SoundInfo.new(
 
 # Input
 
-track1 = AudioInput.device.stream
-track2 = AudioInput.file(File.dirname(__FILE__)+"/drum.wav").stream
+track1 = AudioInput.device
+track2 = AudioInputMetronome.new(60.0, soundinfo: soundinfo)
 
 
 # Fx
 
-noise_gate = Compressor.new(threshold: 0.1, ratio: 10.0)
-compressor = Compressor.new(threshold: 0.3, ratio: 0.5)
-distortion = Distortion.new(gain: 300, level:0.1)
-chorus = Chorus.new(soundinfo, depth: 100, rate: 0.25)
-eq = Equalizer2band.new(soundinfo, lowgain: 0.0, highgain: -10.0)
 
 
 # Bus
@@ -35,21 +30,23 @@ stereo_out = AudioOutput.device
 # Mixer
 
 track1
-  .send_to(bus1)
+  .stream
   .send_to(file_out)
+  .send_to(bus1)
 
 bus1
-  .fx(noise_gate)
   .send_to(stereo_out, gain: 0.5)
 
 track2
+  .stream
   .send_to(stereo_out)
 
 
 # start
 
-[track1, track2, stereo_out].map {|stream|
-  Thread.start(stream) {|stream|
-    stream.connect
-  }
-}.map(&:join)
+conductor = Conductor.new(
+  input: [track1, track2],
+  output: [file_out, stereo_out]
+)
+conductor.connect
+conductor.join

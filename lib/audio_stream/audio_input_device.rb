@@ -4,6 +4,7 @@ module AudioStream
     attr_reader :dev
 
     def initialize(dev, window_size=1024)
+      super()
       @dev = dev
       @window_size = window_size
     end
@@ -21,12 +22,17 @@ module AudioStream
         buf = Buffer.float(@window_size, channels)
 
         loop {
+          @sync.yield
+
           na = @inbuf.read(@window_size)
           @window_size.times {|i|
             buf[i] = na[(na.dim*i)...(na.dim*(i+1))].to_a.map{|s| s / 0x7FFF.to_f}
           }
+
+          @sync.resume_wait
           y << buf.clone
         }
+        @sync.finish
       end.each(&block)
     end
 

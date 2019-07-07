@@ -10,7 +10,7 @@ $input_stream = nil
 op = OptionParser.new do |opt|
   opt.on('-f path', 'input file path') {|v|
     if File.exists?(v)
-      $input_stream = AudioInput.file(v).stream
+      $input = AudioInput.file(v)
     else
       raise "No such input file: #{v}"
     end
@@ -18,7 +18,7 @@ op = OptionParser.new do |opt|
   opt.on('-d device', 'input device name') {|v|
     device = AudioInputDevice.devices.select{|d| d.name.downcase.include?(v.downcase)}.first
     if device
-      $input_stream = device.stream
+      $input = device
     else
       raise "No such input device: #{v}"
     end
@@ -27,7 +27,7 @@ op = OptionParser.new do |opt|
   begin
     opt.parse!(ARGV)
 
-    if !$input_stream
+    if !$input
       raise ""
     end
   rescue => e

@@ -2,41 +2,23 @@ module AudioStream
   class AudioOutputFile < AudioOutput
     def initialize(fname, soundinfo)
       super()
-      @sound = RubyAudio::Sound.open(fname, "w", soundinfo)
+      @fname = fname
+      @soundinfo = soundinfo
     end
 
     def connect
+      @sound = RubyAudio::Sound.open(@fname, "w", @soundinfo)
     end
 
-    def on_next(a)
-      a = [a].flatten
-      window_size = a.map(&:size).max
-      channels = a.first&.channels
-      buf = Buffer.float(window_size, channels)
+    def disconnect
+    end
 
-      case channels
-      when 1
-        a.each {|x|
-          x.size.times.each {|i|
-            if buf[i]
-              buf[i] += x[i]
-            else
-              buf[i] = x[i]
-            end
-          }
-        }
-      when 2
-        a.each {|x|
-          x.size.times.each {|i|
-            if buf[i]
-              buf[i] = buf[i].zip(x[i]).map {|a| a[0] + a[1]}
-            else
-              buf[i] = x[i]
-            end
-          }
-        }
-      end
-      @sound.write(buf)
+    def join
+      @sync.yield_wait
+    end
+
+    def on_next(input)
+      @sound.write(input)
     end
 
     def on_error(error)
@@ -47,6 +29,7 @@ module AudioStream
 
     def on_completed
       @sound.close
+      @sync.finish
     end
   end
 end

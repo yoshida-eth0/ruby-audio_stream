@@ -12,8 +12,8 @@ soundinfo = RubyAudio::SoundInfo.new(
 
 # Track
 
-#track1 = AudioInput.sin(454.0, 100, 2048, soundinfo: soundinfo).stream
-track1 = AudioInput.device(1024*2*2*2).stream
+#track1 = AudioInput.sin(454.0, 100, 2048, soundinfo: soundinfo)
+track1 = AudioInput.device(1024*2*2*2)
 
 
 # Audio FX
@@ -29,6 +29,7 @@ stereo_out = AudioOutput.device
 # Mixer
 
 track1
+  .stream
   .fx(tuner)
   .subscribe_on_next {|tone|
     width = 30
@@ -61,10 +62,15 @@ track1
   }
 
 #track1
+#  .stream
 #  .send_to(stereo_out)
 
 
 # start
 
-[track1].map(&:connect)
-
+conductor = Conductor.new(
+  input: track1,
+  output: nil
+)
+conductor.connect
+conductor.join

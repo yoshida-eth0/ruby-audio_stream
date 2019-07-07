@@ -1,7 +1,8 @@
 module AudioStream
   class AudioInputSin < AudioInput
 
-    def initialize(hz, repeat, window_size=1024, soundinfo:)
+    def initialize(hz, repeat=nil, window_size=1024, soundinfo:)
+      super()
       @hz = hz
       @repeat = repeat
       @window_size = window_size
@@ -19,7 +20,9 @@ module AudioStream
         phase = @hz.to_f / @soundinfo.samplerate * 2 * Math::PI
         offset = 0
 
-        @repeat.times.each {|_|
+        Range.new(0, @repeat).each {|_|
+          @sync.yield
+
           case @soundinfo.channels
           when 1
             @window_size.times.each {|i|
@@ -32,8 +35,11 @@ module AudioStream
             }
           end
           offset += @window_size
+
+          @sync.resume_wait
           y << buf.clone
         }
+        @sync.finish
       end.each(&block)
     end
   end

@@ -3,8 +3,22 @@ module AudioStream
   class AudioInput
     include Enumerable
 
+    attr_reader :sync
+    attr_reader :connection
+
+    def initialize()
+      @sync = Sync.new
+      @connection = nil
+    end
+
+    def connect
+      @connection = Thread.start {
+        stream.connect
+      }
+    end
+
     def stream
-      Rx::Observable.create do |observer|
+      @stream ||= Rx::Observable.create do |observer|
         each {|buf|
           observer.on_next(buf)
         }

@@ -3,7 +3,7 @@ require_relative 'example_options'
 
 # Track
 
-track1 = $input_stream
+track1 = $input
 
 
 # Fx
@@ -20,6 +20,7 @@ stereo_out = AudioOutput.device
 # Mixer
 
 track1
+  .stream
   .fx(tremolo)
   .send_to(bus1)
 
@@ -29,8 +30,9 @@ bus1
 
 # start
 
-[track1, stereo_out].map {|stream|
-  Thread.start(stream) {|stream|
-    stream.connect
-  }
-}.map(&:join)
+conductor = Conductor.new(
+  input: track1,
+  output: stereo_out
+)
+conductor.connect
+conductor.join

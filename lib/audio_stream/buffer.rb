@@ -25,7 +25,7 @@ module AudioStream
           }
         }
       when 2
-        m2s = MonoToStereo.new
+        m2s = Fx::MonoToStereo.new
         a = [
           m2s.process(self),
           m2s.process(other),
