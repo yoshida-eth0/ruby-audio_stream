@@ -1,6 +1,6 @@
 module AudioStream
   class AudioOutputFile < AudioOutput
-    def initialize(fname, soundinfo)
+    def initialize(fname, soundinfo:)
       super()
       @fname = fname
       @soundinfo = soundinfo

@@ -17,7 +17,7 @@ eq_2band = Equalizer2band.new($soundinfo, lowgain: 0.0, highgain: -10.0)
 # Bus
 
 bus1 = AudioBus.new
-stereo_out = AudioOutput.device
+stereo_out = AudioOutput.device(soundinfo: soundinfo)
 
 
 # Mixer

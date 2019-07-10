@@ -6,12 +6,12 @@ module AudioStream
       @sync = Sync.new
     end
 
-    def self.file(fname, soundinfo)
-      AudioOutputFile.new(fname, soundinfo)
+    def self.file(fname, soundinfo:)
+      AudioOutputFile.new(fname, soundinfo: soundinfo)
     end
 
-    def self.device(window_size=1024)
-      AudioOutputDevice.default_device(window_size)
+    def self.device(soundinfo:)
+      AudioOutputDevice.default_device(soundinfo: soundinfo)
     end
   end
 end

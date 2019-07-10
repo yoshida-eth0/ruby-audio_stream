@@ -1,15 +1,15 @@
 module AudioStream
-  class AudioInputFile < AudioInput
+  class AudioInputFile
+    include AudioInput
 
-    def initialize(path, window_size=1024)
+    def initialize(path, soundinfo:)
       @path = path
       @sound = RubyAudio::Sound.open(path)
-      @window_size = window_size
-      @sync = Sync.new
+      @soundinfo = soundinfo
     end
 
     def name
-      @name
+      @path
     end
 
     def seek(frames, whence=IO::SEEK_SET)
@@ -19,14 +19,14 @@ module AudioStream
 
     def each(&block)
       Enumerator.new do |y|
-        buf = Buffer.float(@window_size, @sound.info.channels)
+        buf = Buffer.float(@soundinfo.window_size, @sound.info.channels)
         while @sound.read(buf)!=0
           buf.real_size = buf.size
-          @sync.yield
-          @sync.resume_wait
+          sync.yield
+          sync.resume_wait
           y << buf.clone
         end
-        @sync.finish
+        sync.finish
       end.each(&block)
     end
   end

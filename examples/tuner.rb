@@ -4,9 +4,10 @@ include AudioStream
 include AudioStream::Fx
 
 
-soundinfo = RubyAudio::SoundInfo.new(
+soundinfo = SoundInfo.new(
   channels: 2,
   samplerate: 44100,
+  window_size: 1024,
   format: RubyAudio::FORMAT_WAV|RubyAudio::FORMAT_PCM_16
 )
 
@@ -23,7 +24,7 @@ tuner = Tuner.new(soundinfo)
 
 # Bus
 
-stereo_out = AudioOutput.device
+stereo_out = AudioOutput.device(soundinfo: soundinfo)
 
 
 # Mixer

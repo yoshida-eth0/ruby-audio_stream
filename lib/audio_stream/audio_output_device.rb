@@ -2,11 +2,11 @@ module AudioStream
   class AudioOutputDevice < AudioOutput
     attr_reader :dev
 
-    def initialize(dev, window_size=1024)
+    def initialize(dev, soundinfo:)
       super()
       @dev = dev
       @channels = dev.output_stream.channels
-      @buf = dev.output_buffer(window_size)
+      @buf = dev.output_buffer(soundinfo.window_size)
     end
 
     def connect

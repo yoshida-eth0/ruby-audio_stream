@@ -1,14 +1,12 @@
 module AudioStream
 
-  class AudioInput
+  module AudioInput
     include Enumerable
 
-    attr_reader :sync
     attr_reader :connection
 
-    def initialize()
-      @sync = Sync.new
-      @connection = nil
+    def sync
+      @sync ||= Sync.new
     end
 
     def connect
@@ -27,20 +25,20 @@ module AudioStream
     end
 
 
-    def self.file(fname, window_size=1024)
-      AudioInputFile.new(fname, window_size)
+    def self.file(fname, soundinfo:)
+      AudioInputFile.new(fname, soundinfo: soundinfo)
     end
 
     def self.buffer(buf)
-      AudioInputBuffer.new([buf])
+      AudioInputBuffer.new(buf)
     end
 
-    def self.device(window_size=1024)
-      AudioInputDevice.default_device(window_size)
+    def self.device(soundinfo:)
+      AudioInputDevice.default_device(soundinfo: soundinfo)
     end
 
-    def self.sin(hz, repeat, window_size=1024, soundinfo:)
-      AudioInputSin.new(hz, repeat, window_size, soundinfo: soundinfo)
+    def self.sin(hz, repeat, soundinfo:)
+      AudioInputSin.new(hz, repeat, soundinfo: soundinfo)
     end
   end
 end

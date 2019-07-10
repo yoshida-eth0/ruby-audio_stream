@@ -9,11 +9,11 @@ module AudioStream
 
     def add(observable, gain:, pan:)
       if gain && gain!=1.0
-        observable = observable.map(&AGain.new(level: gain).method(:process))
+        observable = observable.map(&Fx::AGain.new(level: gain).method(:process))
       end
 
       if pan && pan!=0.0
-        observable = observable.map(&Panning.new(pan: pan).method(:process))
+        observable = observable.map(&Fx::Panning.new(pan: pan).method(:process))
       end
 
       @observables << observable

@@ -16,7 +16,7 @@ chorus = Chorus.new($soundinfo, depth: 100, rate: 0.25)
 # Bus
 
 bus1 = AudioBus.new
-stereo_out = AudioOutput.device
+stereo_out = AudioOutput.device(soundinfo: soundinfo)
 
 
 # Mixer

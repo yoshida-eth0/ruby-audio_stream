@@ -4,9 +4,10 @@ include AudioStream
 include AudioStream::Fx
 
 
-soundinfo = RubyAudio::SoundInfo.new(
+soundinfo = SoundInfo.new(
   channels: 2,
   samplerate: 44100,
+  window_size: 1024,
   format: RubyAudio::FORMAT_WAV|RubyAudio::FORMAT_PCM_16
 )
 
@@ -25,8 +26,8 @@ gain = AGain.new(level: 0.3)
 
 # Bus
 
-#stereo_out = AudioOutput.file("out.wav", soundinfo)
-stereo_out = AudioOutput.device
+#stereo_out = AudioOutput.file("out.wav", soundinfo: soundinfo)
+stereo_out = AudioOutput.device(soundinfo: soundinfo)
 bus1 = AudioBus.new
 
 

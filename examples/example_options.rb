@@ -49,8 +49,9 @@ op = OptionParser.new do |opt|
 end
 
 
-$soundinfo = RubyAudio::SoundInfo.new(
+$soundinfo = SoundInfo.new(
   channels: 1,
   samplerate: 44100,
+  window_size: 1024,
   format: RubyAudio::FORMAT_WAV|RubyAudio::FORMAT_PCM_16
 )

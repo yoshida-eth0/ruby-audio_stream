@@ -3,9 +3,10 @@ require 'audio_stream/core_ext'
 include AudioStream
 include AudioStream::Fx
 
-soundinfo = RubyAudio::SoundInfo.new(
+soundinfo = SoundInfo.new(
   channels: 2,
   samplerate: 44100,
+  window_size: 1024
   format: RubyAudio::FORMAT_WAV|RubyAudio::FORMAT_PCM_16
 )
 
@@ -23,8 +24,8 @@ track2 = AudioInputMetronome.new(60.0, soundinfo: soundinfo)
 # Bus
 
 bus1 = AudioBus.new
-file_out = AudioOutput.file("out.wav", soundinfo)
-stereo_out = AudioOutput.device
+file_out = AudioOutput.file("out.wav", soundinfo: soundinfo)
+stereo_out = AudioOutput.device(soundinfo: soundinfo)
 
 
 # Mixer

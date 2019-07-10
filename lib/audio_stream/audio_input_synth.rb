@@ -1,19 +1,26 @@
 module AudioStream
-  class AudioInputBuffer
+  class AudioInputSynth < Rx::Subject
     include AudioInput
 
-    def initialize(buffers)
-      @buffers = [buffers].flatten.compact
+    def initialize(synth, soundinfo:)
+      super()
+
+      @synth = synth
+
+      @soundinfo = soundinfo
     end
 
     def name
-      "Buffer"
+      "Synth"
     end
 
     def each(&block)
       Enumerator.new do |y|
-        @buffers.each {|buf|
+        loop {
           sync.yield
+
+          buf = @synth.next
+
           sync.resume_wait
           y << buf
         }

@@ -14,7 +14,7 @@ tremolo = Tremolo.new($soundinfo, freq: 5, depth: 0.8)
 # Bus
 
 bus1 = AudioBus.new
-stereo_out = AudioOutput.device
+stereo_out = AudioOutput.device(soundinfo: soundinfo)
 
 
 # Mixer
