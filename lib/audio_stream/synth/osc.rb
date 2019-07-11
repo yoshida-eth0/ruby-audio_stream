@@ -3,25 +3,32 @@ module AudioStream
     class Osc
 
       module Source
-        Sin = ->(rad) { Math.sin(rad) }
+        Sine = ->(phase) { Math.sin(phase * 2 * Math::PI) }
+        Sawtooth = ->(phase) { ((phase + 0.5) % 1) * 2 - 1 }
+        Square = ->(phase) { 0.5<=((phase + 0.5) % 1) ? 1.0 : -1.0 }
+        Triangle = ->(phase) {
+          t = ((phase*4).floor % 4);
+          t==0 ? (phase % 0.5)*4 :
+          t==1 ? (2-(phase % 0.5)*4) :
+          t==2 ? (-(phase % 0.5)*4) : (phase % 0.5)*4-2
+        }
+        WhiteNoise = ->(phase) { Random.rand(-1.0...1.0) }
       end
 
-      def initialize(src: Source::Sin, volume: 1.0, volume_mods: nil, sym: 0, phase: 0, sync: 0, uni_num: 1, uni_detune: 0, soundinfo:)
+      def initialize(src: Source::Sine, volume: 1.0, pan: 0.0, tune_semis: 0, tune_cents: 0, sym: 0, phase: 0, sync: 0, uni_num: 1, uni_detune: 0, soundinfo:)
         @src = src
 
-        @volume = volume
-        @volume_mods = volume_mods
+        @volume = Param.create(volume)
+        @pan = Param.create(pan)
+        @tune_semis = Param.create(tune_semis)
+        @tune_cents = Param.create(tune_cents)
 
-        @pan = 0.0
-        @tune_semis = 0
-        @tune_cents = 0
+        @sym = Param.create(sym)
+        @phase = Param.create(phase)
+        @sync = Param.create(sync)
 
-        @sym = sym
-        @phase = phase
-        @sync = sync
-
-        @uni_num = uni_num
-        @uni_detune = uni_detune
+        @uni_num = Param.create(uni_num)
+        @uni_detune = Param.create(uni_detune)
 
         @soundinfo = soundinfo
       end
@@ -30,22 +37,27 @@ module AudioStream
         Enumerator.new do |y|
           buf = Buffer.float(@soundinfo.window_size, @soundinfo.channels)
 
+          volume_mod = Param.generator(note_perform, note_perform.synth.volume, @volume)
+          pan_mod = Param.generator(note_perform, note_perform.synth.pan, @pan)
+          tune_semis_mod = Param.generator(note_perform, note_perform.synth.tune_semis, @tune_semis)
+          tune_cents_mod = Param.generator(note_perform, note_perform.synth.tune_cents, @tune_cents)
+
           offset = 0
 
           loop {
-            hz = note_perform.hz(semis: @tune_semis, cents: @tune_cents).to_f
-            delta = hz / @soundinfo.samplerate * 2 * Math::PI
-
-            #volume_mods = note_perform.volume_mods
+            tune_semis = tune_semis_mod.next
+            tune_cents = tune_cents_mod.next
+            hz = note_perform.tune.hz(semis: tune_semis, cents: tune_cents)
+            rate = hz / @soundinfo.samplerate
 
             case @soundinfo.channels
             when 1
               @soundinfo.window_size.times.each {|i|
-                buf[i] = Math.sin(delta * (i + offset))
+                buf[i] = @src[rate * (i + offset)] * volume_mod.next
               }
             when 2
               @soundinfo.window_size.times.each {|i|
-                val = Math.sin(delta * (i + offset))
+                val = @src[rate * (i + offset)] * volume_mod.next
                 buf[i] = [val, val]
               }
             end

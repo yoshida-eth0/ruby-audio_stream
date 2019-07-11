@@ -9,28 +9,26 @@ module AudioStream
 
       attr_reader :oscs
       attr_reader :volume
-      attr_reader :volume_mods
 
-      def initialize(oscs: nil, volume: 1.0, volume_mods: nil, soundinfo:)
+      def initialize(oscs: nil, volume: 1.0, pan: 0.0, tune_semis: 0, tune_cents: 0, soundinfo:)
         #@oscs = [osc].flatten.compact
         @oscs = [Osc.new(soundinfo: soundinfo)]
 
-        @volume = volume
-        #@volume_mods = [vol_mods].flatten.compact
-        @volume_mods = [Modulation::Adsr.new(
-          attack: 0.1,
-          hold: 0.1,
-          decay: 0.4,
-          sustain: 0.8,
-          release: 0.5,
-          soundinfo: soundinfo
-        )]
+        #@volume = Param.create(volume)
+        @volume = Param.new(1.0)
+          .add(Modulation::Adsr.new(
+            attack: 0.1,
+            hold: 0.1,
+            decay: 0.4,
+            sustain: 0.8,
+            release: 0.5,
+            soundinfo: soundinfo
+          ), depth: 1.0)
 
-        @pan = 0.0
-        @pan_mods = []
+        @pan = Param.create(pan)
 
-        @tune_semis = 0
-        @tune_cents = 0
+        @tune_semis = Param.create(tune_semis)
+        @tune_cents = Param.create(tune_cents)
 
         @soundinfo = soundinfo
 
@@ -39,7 +37,12 @@ module AudioStream
 
       def next
         if 0<@performs.length
-          @performs.values.map(&:next).inject(:+)
+          bufs = @performs.values.map(&:next)
+
+          # delete released note performs
+          @performs.delete_if{|teno_num, per| per.released?}
+
+          bufs.compact.inject(:+)
         else
           Buffer.float(@soundinfo.window_size, @soundinfo.channels)
         end

@@ -72,15 +72,15 @@ module AudioStream
         end
 
         def generator(note_perform, &block)
-          Enumerator.new do |yld|
-            note_on = note_on_envelope.each(sustain: true)
-            note_off = note_off_envelope.each
+          Enumerator.new do |y|
+            note_on = note_on_envelope(sustain: true)
+            note_off = note_off_envelope
 
             loop {
               if note_perform.note_on?
-                yld << note_on.next
+                y << note_on.next
               else
-                yld << note_off.next
+                y << note_off.next
               end
             }
           end.each(&block)
