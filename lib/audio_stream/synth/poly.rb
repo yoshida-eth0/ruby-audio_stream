@@ -2,29 +2,19 @@ module AudioStream
   module Synth
     class Poly
 
+      attr_reader :oscs
+
       attr_reader :volume
       attr_reader :pan
       attr_reader :tune_semis
       attr_reader :tune_cents
 
-      attr_reader :oscs
-      attr_reader :volume
+      attr_reader :soundinfo
 
-      def initialize(oscs: nil, volume: 1.0, pan: 0.0, tune_semis: 0, tune_cents: 0, soundinfo:)
-        #@oscs = [osc].flatten.compact
-        @oscs = [Osc.new(soundinfo: soundinfo)]
+      def initialize(oscs:, volume: 1.0, pan: 0.0, tune_semis: 0, tune_cents: 0, soundinfo:)
+        @oscs = [oscs].flatten.compact
 
-        #@volume = Param.create(volume)
-        @volume = Param.new(1.0)
-          .add(Modulation::Adsr.new(
-            attack: 0.1,
-            hold: 0.1,
-            decay: 0.4,
-            sustain: 0.8,
-            release: 0.5,
-            soundinfo: soundinfo
-          ), depth: 1.0)
-
+        @volume = Param.create(volume)
         @pan = Param.create(pan)
 
         @tune_semis = Param.create(tune_semis)

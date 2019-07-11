@@ -15,7 +15,7 @@ module AudioStream
         WhiteNoise = ->(phase) { Random.rand(-1.0...1.0) }
       end
 
-      def initialize(src: Source::Sine, volume: 1.0, pan: 0.0, tune_semis: 0, tune_cents: 0, sym: 0, phase: 0, sync: 0, uni_num: 1, uni_detune: 0, soundinfo:)
+      def initialize(src: Source::Sine, volume: 1.0, pan: 0.0, tune_semis: 0, tune_cents: 0, sym: 0, phase: 0, sync: 0, uni_num: 1, uni_detune: 0)
         @src = src
 
         @volume = Param.create(volume)
@@ -29,41 +29,44 @@ module AudioStream
 
         @uni_num = Param.create(uni_num)
         @uni_detune = Param.create(uni_detune)
-
-        @soundinfo = soundinfo
       end
 
       def generator(note_perform, &block)
         Enumerator.new do |y|
-          buf = Buffer.float(@soundinfo.window_size, @soundinfo.channels)
+          synth = note_perform.synth
+          channels = synth.soundinfo.channels
+          samplerate = synth.soundinfo.samplerate
+          window_size = synth.soundinfo.window_size
 
-          volume_mod = Param.generator(note_perform, note_perform.synth.volume, @volume)
-          pan_mod = Param.generator(note_perform, note_perform.synth.pan, @pan)
-          tune_semis_mod = Param.generator(note_perform, note_perform.synth.tune_semis, @tune_semis)
-          tune_cents_mod = Param.generator(note_perform, note_perform.synth.tune_cents, @tune_cents)
+          volume_mod = Param.generator(note_perform, synth.volume, @volume)
+          pan_mod = Param.generator(note_perform, synth.pan, @pan)
+          tune_semis_mod = Param.generator(note_perform, synth.tune_semis, @tune_semis)
+          tune_cents_mod = Param.generator(note_perform, synth.tune_cents, @tune_cents)
 
           offset = 0
 
           loop {
+            buf = Buffer.float(window_size, channels)
+
             tune_semis = tune_semis_mod.next
             tune_cents = tune_cents_mod.next
             hz = note_perform.tune.hz(semis: tune_semis, cents: tune_cents)
-            rate = hz / @soundinfo.samplerate
+            rate = hz / samplerate
 
-            case @soundinfo.channels
+            case channels
             when 1
-              @soundinfo.window_size.times.each {|i|
+              window_size.times.each {|i|
                 buf[i] = @src[rate * (i + offset)] * volume_mod.next
               }
             when 2
-              @soundinfo.window_size.times.each {|i|
+              window_size.times.each {|i|
                 val = @src[rate * (i + offset)] * volume_mod.next
                 buf[i] = [val, val]
               }
             end
-            offset += @soundinfo.window_size
+            offset += window_size
 
-            y << buf.clone
+            y << buf
           }
         end.each(&block)
       end

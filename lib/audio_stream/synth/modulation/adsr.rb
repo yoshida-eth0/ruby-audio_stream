@@ -10,7 +10,7 @@ module AudioStream
         end
 
 
-        def initialize(attack:, attack_curve: Curve::EaseOut, hold: 0.0, decay:, sustain_curve: Curve::EaseIn, sustain:, release:, release_curve: Curve::EaseOut, soundinfo:)
+        def initialize(attack:, attack_curve: Curve::EaseOut, hold: 0.0, decay:, sustain_curve: Curve::EaseIn, sustain:, release:, release_curve: Curve::EaseOut)
           @attack = attack
           @attack_curve = attack_curve
           @hold = hold
@@ -19,12 +19,11 @@ module AudioStream
           @sustain = sustain
           @release = release
           @release_curve = release_curve
-          @soundinfo = soundinfo
         end
 
-        def note_on_envelope(sustain: false, &block)
+        def note_on_envelope(synth, sustain: false, &block)
           Enumerator.new do |yld|
-            samplerate = @soundinfo.samplerate
+            samplerate = synth.soundinfo.samplerate
 
             # attack
             rate = @attack * samplerate
@@ -57,9 +56,9 @@ module AudioStream
           end.each(&block)
         end
 
-        def note_off_envelope(&block)
+        def note_off_envelope(synth, &block)
           Enumerator.new do |yld|
-            samplerate = @soundinfo.samplerate
+            samplerate = synth.soundinfo.samplerate
 
             # release
             rate = @release * samplerate
@@ -73,8 +72,10 @@ module AudioStream
 
         def generator(note_perform, &block)
           Enumerator.new do |y|
-            note_on = note_on_envelope(sustain: true)
-            note_off = note_off_envelope
+            synth = note_perform.synth
+
+            note_on = note_on_envelope(synth, sustain: true)
+            note_off = note_off_envelope(synth)
 
             loop {
               if note_perform.note_on?
