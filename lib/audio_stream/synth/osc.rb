@@ -42,17 +42,12 @@ module AudioStream
 
           uni_num_mod = Param.balance_generator(note_perform, @uni_num)
           uni_detune_mod = Param.balance_generator(note_perform, @uni_detune)
-
-          uni_num_max = 16
-          poss = uni_num_max.times.map {|i|
-            ShapePos.new(phase: @phase.value)
-          }
+          unison = Unison.new(note_perform, @shape, @phase)
 
           case channels
           when 1
             # TODO
             window_size.times.each {|i|
-              buf[i] = @shape[pos.next(rate)] * volume
             }
           when 2
             loop {
@@ -65,41 +60,9 @@ module AudioStream
                 tune_cents = tune_cents_mod.next
 
                 uni_num = uni_num_mod.next
-                if uni_num<1.0
-                  uni_num = 1.0
-                elsif uni_num_max<uni_num
-                  uni_num = uni_num_max
-                end
                 uni_detune = uni_detune_mod.next
 
-                # uni
-                val_l = 0.0
-                val_r = 0.0
-                uni_num.ceil.times {|j|
-                  pos = poss[j]
-
-                  uni_volume = 1.0
-                  if uni_num<j
-                    uni_volume = uni_num % 1.0
-                  end
-
-                  sign = j.even? ? 1 : -1
-                  detune_cents = sign * (j/2) * uni_detune * 100
-                  diffpan = sign * (j/2) * uni_detune
-
-                  panh = Utils.panning(pan + diffpan)
-                  l_gain = panh[:l_gain]
-                  r_gain = panh[:r_gain]
-
-                  hz = note_perform.tune.hz(semis: tune_semis, cents: tune_cents + detune_cents)
-                  rate = hz / samplerate
-
-                  val = @shape[pos.next(rate)] * uni_volume
-                  val_l += val * l_gain
-                  val_r += val * r_gain
-                }
-
-                buf[i] = [val_l * volume / uni_num, val_r * volume / uni_num]
+                buf[i] = unison.next(uni_num, uni_detune, volume, pan, tune_semis, tune_cents)
               }
 
               y << buf
