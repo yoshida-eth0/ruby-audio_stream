@@ -2,21 +2,18 @@ module AudioStream
   module Synth
     class Osc
 
-      module Source
-        Sine = ->(phase) { Math.sin(phase * 2 * Math::PI) }
-        Sawtooth = ->(phase) { ((phase + 0.5) % 1) * 2 - 1 }
-        Square = ->(phase) { 0.5<=((phase + 0.5) % 1) ? 1.0 : -1.0 }
-        Triangle = ->(phase) {
-          t = ((phase*4).floor % 4);
-          t==0 ? (phase % 0.5)*4 :
-          t==1 ? (2-(phase % 0.5)*4) :
-          t==2 ? (-(phase % 0.5)*4) : (phase % 0.5)*4-2
-        }
-        WhiteNoise = ->(phase) { Random.rand(-1.0...1.0) }
-      end
-
-      def initialize(src: Source::Sine, volume: 1.0, pan: 0.0, tune_semis: 0, tune_cents: 0, sym: 0, phase: 0, sync: 0, uni_num: 1, uni_detune: 0)
-        @src = src
+      # @param shape [Synth::Shape]
+      # @param volume [Float] mute=0.0 max=1.0
+      # @param pan [Float] left=-1.0 center=0.0 right=1.0 (-1.0~1.0)
+      # @param tune_semis [Integer] pitch semitone
+      # @param tune_cents [Integer] pitch cent
+      # @param sym [nil] TODO not implemented
+      # @param phase [Float] start phase percent (0.0~1.0,nil) nil=random
+      # @param sync [Integer] TODO not implemented
+      # @param uni_num [Integer] voicing number TODO not implemented
+      # @param uni_detune [Integer] voicing number TODO not implemented
+      def initialize(shape: Shape::Sine, volume: 1.0, pan: 0.0, tune_semis: 0, tune_cents: 0, sym: 0, phase: 0.0, sync: 0, uni_num: 1, uni_detune: 0)
+        @shape = shape
 
         @volume = Param.create(volume)
         @pan = Param.create(pan)
@@ -43,13 +40,15 @@ module AudioStream
           tune_semis_mod = Param.balance_generator(note_perform, synth.tune_semis, @tune_semis)
           tune_cents_mod = Param.balance_generator(note_perform, synth.tune_cents, @tune_cents)
 
-          offset = 0
+          # TODO: sym
+          # TODO: sync
+          pos = ShapePos.new(phase: @phase.value)
 
           case channels
           when 1
             # TODO
             window_size.times.each {|i|
-              buf[i] = @src[rate * (i + offset)] * volume
+              buf[i] = @shape[pos.next(rate)] * volume
             }
           when 2
             loop {
@@ -68,10 +67,9 @@ module AudioStream
                 hz = note_perform.tune.hz(semis: tune_semis, cents: tune_cents)
                 rate = hz / samplerate
 
-                val = @src[rate * (i + offset)] * volume
+                val = @shape[pos.next(rate)] * volume
                 buf[i] = [val * l_gain, val * r_gain]
               }
-              offset += window_size
 
               y << buf
             }

@@ -3,14 +3,7 @@ module AudioStream
     module Modulation
       class Adsr
 
-        module Curve
-          Straight = ->(x) { x }
-          EaseIn = ->(x) { x ** 2 }
-          EaseOut = ->(x) { x * (2 - x) }
-        end
-
-
-        def initialize(attack:, attack_curve: Curve::EaseOut, hold: 0.0, decay:, sustain_curve: Curve::EaseIn, sustain:, release:, release_curve: Curve::EaseOut)
+        def initialize(attack:, attack_curve: Curve::EaseOut, hold: 0.0, decay:, sustain_curve: Curve::EaseOut, sustain:, release:, release_curve: Curve::EaseOut)
           @attack = attack
           @attack_curve = attack_curve
           @hold = hold
@@ -92,6 +85,28 @@ module AudioStream
           end.each(&block)
         end
         alias_method :balance_generator, :amp_generator
+
+        def plot(samplerate=44100)
+          note_on = note_on_envelope(samplerate, sustain: false)
+          note_off = note_off_envelope(samplerate, sustain: false)
+          last = 0.0
+
+          xs = []
+          ys = []
+
+          note_on.each {|y|
+            xs << xs.length
+            ys << y
+          }
+
+          last = ys.last || 0.0
+          note_off.each {|y|
+            xs << xs.length
+            ys << y * last
+          }
+
+          Plotly::Plot.new(data: [{x: xs, y: ys}])
+        end
       end
     end
   end
