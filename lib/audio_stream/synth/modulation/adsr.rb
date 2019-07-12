@@ -21,10 +21,8 @@ module AudioStream
           @release_curve = release_curve
         end
 
-        def note_on_envelope(synth, sustain: false, &block)
+        def note_on_envelope(samplerate, sustain: false, &block)
           Enumerator.new do |yld|
-            samplerate = synth.soundinfo.samplerate
-
             # attack
             rate = @attack * samplerate
             rate.to_i.times {|i|
@@ -43,7 +41,7 @@ module AudioStream
             rate = @decay * samplerate
             rate.to_i.times {|i|
               x = i.to_f / rate
-              y = 1.0 - @release_curve[x]  * (1.0 - @sustain)
+              y = 1.0 - @sustain_curve[x]  * (1.0 - @sustain)
               yld << y
             }
 
@@ -56,36 +54,44 @@ module AudioStream
           end.each(&block)
         end
 
-        def note_off_envelope(synth, &block)
+        def note_off_envelope(samplerate, sustain: false, &block)
           Enumerator.new do |yld|
-            samplerate = synth.soundinfo.samplerate
-
             # release
             rate = @release * samplerate
             rate.to_i.times {|i|
               x = i.to_f / rate
-              y = @sustain - (@release_curve[x] * @sustain)
+              y = 1.0 - @release_curve[x]
               yld << y
             }
+
+            # sustain
+            if sustain
+              loop {
+                yld << 0.0
+              }
+            end
           end.each(&block)
         end
 
-        def generator(note_perform, &block)
+        def amp_generator(note_perform, sustain: true, &block)
           Enumerator.new do |y|
-            synth = note_perform.synth
+            samplerate = note_perform.synth.soundinfo.samplerate
 
-            note_on = note_on_envelope(synth, sustain: true)
-            note_off = note_off_envelope(synth)
+            note_on = note_on_envelope(samplerate, sustain: sustain)
+            note_off = note_off_envelope(samplerate, sustain: sustain)
+            last = 0.0
 
             loop {
               if note_perform.note_on?
-                y << note_on.next
+                last = note_on.next
+                y << last
               else
-                y << note_off.next
+                y << note_off.next * last
               end
             }
           end.each(&block)
         end
+        alias_method :balance_generator, :amp_generator
       end
     end
   end

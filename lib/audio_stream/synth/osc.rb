@@ -38,36 +38,44 @@ module AudioStream
           samplerate = synth.soundinfo.samplerate
           window_size = synth.soundinfo.window_size
 
-          volume_mod = Param.generator(note_perform, synth.volume, @volume)
-          pan_mod = Param.generator(note_perform, synth.pan, @pan)
-          tune_semis_mod = Param.generator(note_perform, synth.tune_semis, @tune_semis)
-          tune_cents_mod = Param.generator(note_perform, synth.tune_cents, @tune_cents)
+          volume_mod = Param.amp_generator(note_perform, synth.volume, @volume)
+          pan_mod = Param.balance_generator(note_perform, synth.pan, @pan)
+          tune_semis_mod = Param.balance_generator(note_perform, synth.tune_semis, @tune_semis)
+          tune_cents_mod = Param.balance_generator(note_perform, synth.tune_cents, @tune_cents)
 
           offset = 0
 
-          loop {
-            buf = Buffer.float(window_size, channels)
+          case channels
+          when 1
+            # TODO
+            window_size.times.each {|i|
+              buf[i] = @src[rate * (i + offset)] * volume
+            }
+          when 2
+            loop {
+              buf = Buffer.float(window_size, channels)
 
-            tune_semis = tune_semis_mod.next
-            tune_cents = tune_cents_mod.next
-            hz = note_perform.tune.hz(semis: tune_semis, cents: tune_cents)
-            rate = hz / samplerate
-
-            case channels
-            when 1
               window_size.times.each {|i|
-                buf[i] = @src[rate * (i + offset)] * volume_mod.next
-              }
-            when 2
-              window_size.times.each {|i|
-                val = @src[rate * (i + offset)] * volume_mod.next
-                buf[i] = [val, val]
-              }
-            end
-            offset += window_size
+                volume = volume_mod.next
 
-            y << buf
-          }
+                pan = pan_mod.next
+                pan = Utils.panning(pan)
+                l_gain = pan[:l_gain]
+                r_gain = pan[:r_gain]
+
+                tune_semis = tune_semis_mod.next
+                tune_cents = tune_cents_mod.next
+                hz = note_perform.tune.hz(semis: tune_semis, cents: tune_cents)
+                rate = hz / samplerate
+
+                val = @src[rate * (i + offset)] * volume
+                buf[i] = [val * l_gain, val * r_gain]
+              }
+              offset += window_size
+
+              y << buf
+            }
+          end
         end.each(&block)
       end
     end
