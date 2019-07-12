@@ -11,6 +11,12 @@ module AudioStream
 
       attr_reader :soundinfo
 
+      # @param oscs [Osc] oscillator
+      # @param volume [Float] master volume. mute=0.0 max=1.0
+      # @param pan [Float] master pan. left=-1.0 center=0.0 right=1.0 (-1.0~1.0)
+      # @param tune_semis [Integer] master pitch semitone
+      # @param tune_cents [Integer] master pitch cent
+      # @param soundinfo [SoundInfo]
       def initialize(oscs:, volume: 1.0, pan: 0.0, tune_semis: 0, tune_cents: 0, soundinfo:)
         @oscs = [oscs].flatten.compact
 

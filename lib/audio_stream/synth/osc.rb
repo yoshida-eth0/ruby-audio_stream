@@ -10,9 +10,9 @@ module AudioStream
       # @param sym [nil] TODO not implemented
       # @param phase [Float] start phase percent (0.0~1.0,nil) nil=random
       # @param sync [Integer] TODO not implemented
-      # @param uni_num [Integer] voicing number TODO not implemented
-      # @param uni_detune [Integer] voicing number TODO not implemented
-      def initialize(shape: Shape::Sine, volume: 1.0, pan: 0.0, tune_semis: 0, tune_cents: 0, sym: 0, phase: 0.0, sync: 0, uni_num: 1, uni_detune: 0)
+      # @param uni_num [Float] voicing number (1.0~16.0)
+      # @param uni_detune [Float] voicing detune percent (0.0~1.0)
+      def initialize(shape: Shape::Sine, volume: 1.0, pan: 0.0, tune_semis: 0, tune_cents: 0, sym: 0, phase: nil, sync: 0, uni_num: 1.0, uni_detune: 0.3)
         @shape = shape
 
         @volume = Param.create(volume)
@@ -40,9 +40,13 @@ module AudioStream
           tune_semis_mod = Param.balance_generator(note_perform, synth.tune_semis, @tune_semis)
           tune_cents_mod = Param.balance_generator(note_perform, synth.tune_cents, @tune_cents)
 
-          # TODO: sym
-          # TODO: sync
-          pos = ShapePos.new(phase: @phase.value)
+          uni_num_mod = Param.balance_generator(note_perform, @uni_num)
+          uni_detune_mod = Param.balance_generator(note_perform, @uni_detune)
+
+          uni_num_max = 16
+          poss = uni_num_max.times.map {|i|
+            ShapePos.new(phase: @phase.value)
+          }
 
           case channels
           when 1
@@ -56,19 +60,46 @@ module AudioStream
 
               window_size.times.each {|i|
                 volume = volume_mod.next
-
                 pan = pan_mod.next
-                pan = Utils.panning(pan)
-                l_gain = pan[:l_gain]
-                r_gain = pan[:r_gain]
-
                 tune_semis = tune_semis_mod.next
                 tune_cents = tune_cents_mod.next
-                hz = note_perform.tune.hz(semis: tune_semis, cents: tune_cents)
-                rate = hz / samplerate
 
-                val = @shape[pos.next(rate)] * volume
-                buf[i] = [val * l_gain, val * r_gain]
+                uni_num = uni_num_mod.next
+                if uni_num<1.0
+                  uni_num = 1.0
+                elsif uni_num_max<uni_num
+                  uni_num = uni_num_max
+                end
+                uni_detune = uni_detune_mod.next
+
+                # uni
+                val_l = 0.0
+                val_r = 0.0
+                uni_num.ceil.times {|j|
+                  pos = poss[j]
+
+                  uni_volume = 1.0
+                  if uni_num<j
+                    uni_volume = uni_num % 1.0
+                  end
+
+                  sign = j.even? ? 1 : -1
+                  detune_cents = sign * (j/2) * uni_detune * 100
+                  diffpan = sign * (j/2) * uni_detune
+
+                  panh = Utils.panning(pan + diffpan)
+                  l_gain = panh[:l_gain]
+                  r_gain = panh[:r_gain]
+
+                  hz = note_perform.tune.hz(semis: tune_semis, cents: tune_cents + detune_cents)
+                  rate = hz / samplerate
+
+                  val = @shape[pos.next(rate)] * uni_volume
+                  val_l += val * l_gain
+                  val_r += val * r_gain
+                }
+
+                buf[i] = [val_l * volume / uni_num, val_r * volume / uni_num]
               }
 
               y << buf

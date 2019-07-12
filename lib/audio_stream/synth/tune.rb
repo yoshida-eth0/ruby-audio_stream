@@ -10,7 +10,7 @@ module AudioStream
       end
 
       def hz(semis: 0, cents: 0)
-        6.875 * (2 ** ((@note_num + semis + 3) / 12.0))
+        6.875 * (2 ** ((@note_num + semis + (cents / 100.0) + 3) / 12.0))
       end
 
       def note_name

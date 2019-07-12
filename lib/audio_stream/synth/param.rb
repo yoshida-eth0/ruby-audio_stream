@@ -27,7 +27,11 @@ module AudioStream
         end
       end
 
-      def self.amp_generator(note_perform, param1, param2)
+      def self.amp_generator(note_perform, param1, param2=nil)
+        if param2==nil
+          param2 = Param.new(1.0)
+        end
+
         # value
         value = param1.value * param2.value
 
@@ -52,9 +56,15 @@ module AudioStream
         end
       end
 
-      def self.balance_generator(note_perform, param1, param2)
+      def self.balance_generator(note_perform, param1, param2=nil)
+        if param2==nil
+          param2 = Param.new(0.0)
+        end
+
+        # value
         value = param1.value + param2.value
 
+        # mods
         mods = []
         param1.mods.each {|mod, depth|
           mods << [mod.balance_generator(note_perform), depth]
