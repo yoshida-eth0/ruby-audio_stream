@@ -46,8 +46,22 @@ module AudioStream
 
           case channels
           when 1
-            # TODO
-            window_size.times.each {|i|
+            loop {
+              buf = Buffer.float(window_size, channels)
+
+              window_size.times.each {|i|
+                volume = volume_mod.next
+                tune_semis = tune_semis_mod.next
+                tune_cents = tune_cents_mod.next
+
+                uni_num = uni_num_mod.next
+                uni_detune = uni_detune_mod.next
+
+                val = unison.next(uni_num, uni_detune, volume, 0.0, tune_semis, tune_cents)
+                buf[i] = (val[0] + val[1]) / 2.0
+              }
+
+              y << buf
             }
           when 2
             loop {

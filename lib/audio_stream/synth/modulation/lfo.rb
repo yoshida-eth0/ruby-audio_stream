@@ -9,7 +9,7 @@ module AudioStream
         # @param attack_curve [Synth::Curve]
         # @param phase [Float] phase percent (0.0~1.0)
         # @param rate [Float] wave freq (0.0~)
-        def initialize(shape: Shape::Sine, delay: 0.0, attack: 0.0, attack_curve: Curve::EaseOut, phase: 0.0, rate: 3.5)
+        def initialize(shape: Shape::Sine, delay: 0.0, attack: 0.0, attack_curve: Curve::Straight, phase: 0.0, rate: 3.5)
           @shape = shape
           @delay = delay
           @attack = attack
@@ -18,20 +18,48 @@ module AudioStream
           @rate = rate
         end
 
-        def balance_generator(note_perform, sustain: true, &block)
-          Enumerator.new do |y|
+        def generator(note_perform, sustain: true, &block)
+          Enumerator.new do |yld|
             samplerate = note_perform.synth.soundinfo.samplerate
+            delta = @rate / samplerate
 
-            # TODO: delay, attack, attack_curve, phase
+            pos = ShapePos.new(phase: @phase)
 
-            pos = ShapePos.new(delay: @delay * samplerate, attack: @attack * samplerate, attack_curve: @attack_curve, phase: @phase)
+            # delay
+            rate = @delay * samplerate
+            rate.to_i.times {|i|
+              yld << 0.0
+            }
 
+            # attack
+            rate = @attack * samplerate
+            rate.to_i.times {|i|
+              x = i.to_f / rate
+              y = @attack_curve[x]
+              yld << @shape[pos.next(delta)] * y
+            }
+
+            # sustain
             loop {
-              rate = @rate / samplerate
-              val = @shape[pos.next(rate)]
-              y << val
+              val = @shape[pos.next(delta)]
+              yld << val
             }
           end.each(&block)
+        end
+
+        def amp_generator(note_perform, depth, sustain: true, &block)
+          bottom = 1.0 - depth
+
+          generator(note_perform, sustain: sustain).lazy.map {|val|
+            val = (val + 1) / 2
+            val * depth + bottom
+          }.each(&block)
+        end
+
+        def balance_generator(note_perform, depth, sustain: true, &block)
+          generator(note_perform, sustain: sustain).lazy.map {|val|
+            val * depth
+          }.each(&block)
         end
       end
     end

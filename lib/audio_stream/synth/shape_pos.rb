@@ -1,11 +1,8 @@
 module AudioStream
   module Synth
     class ShapePos
-      def initialize(delay: 0.0, phase: 0.0, attack: 0.0, attack_curve: nil, sync: nil)
-        @delay = delay
+      def initialize(phase: 0.0, sync: nil)
         @init_phase = phase
-        @attack = attack
-        @attack_curve = attack_curve
         @sync = sync
 
         @offset = 0
@@ -15,11 +12,7 @@ module AudioStream
       def next(delta)
         @offset += 1
 
-        # TODO: attack
-
-        if @offset<@delay
-          0.0
-        elsif @delay==@offset-1
+        if @offset==1
           if @init_phase
             @phase = @init_phase + delta
           else

@@ -14,8 +14,17 @@ module AudioStream
         }
       end
 
+      # @param mod [Synth::Modulation]
+      # @param depth [Float] (-1.0~1.0)
       def add(mod, depth: 1.0)
-        @mods << [mod, depth || 1.0]
+        depth ||= 1.0
+        if depth<-1.0
+          depth = -1.0
+        elsif 1.0<depth
+          depth = 1.0
+        end
+
+        @mods << [mod, depth]
         self
       end
 
@@ -38,19 +47,15 @@ module AudioStream
         # mods
         mods = []
         param1.mods.each {|mod, depth|
-          mods << [mod.amp_generator(note_perform), depth]
+          mods << mod.amp_generator(note_perform, depth)
         }
         param2.mods.each {|mod, depth|
-          mods << [mod.amp_generator(note_perform), depth]
+          mods << mod.amp_generator(note_perform, depth)
         }
 
         Enumerator.new do |y|
           loop {
-            depth = mods.map {|mod, depth|
-              bottom = 1.0 - depth
-              mod.next * depth + bottom
-            }.inject(1.0, &:*)
-
+            depth = mods.map(&:next).inject(1.0, &:*)
             y << value * depth
           }
         end
@@ -67,18 +72,15 @@ module AudioStream
         # mods
         mods = []
         param1.mods.each {|mod, depth|
-          mods << [mod.balance_generator(note_perform), depth]
+          mods << mod.balance_generator(note_perform, depth)
         }
         param2.mods.each {|mod, depth|
-          mods << [mod.balance_generator(note_perform), depth]
+          mods << mod.balance_generator(note_perform, depth)
         }
 
         Enumerator.new do |y|
           loop {
-            depth = mods.map {|mod, depth|
-              mod.next * depth
-            }.sum
-
+            depth = mods.map(&:next).sum
             y << value + depth
           }
         end

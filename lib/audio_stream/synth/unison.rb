@@ -41,9 +41,9 @@ module AudioStream
           r_gain = panh[:r_gain]
 
           hz = @note_perform.tune.hz(semis: tune_semis, cents: tune_cents + detune_cents)
-          rate = hz / @samplerate
+          delta = hz / @samplerate
 
-          val = @shape[pos.next(rate)] * uni_volume
+          val = @shape[pos.next(delta)] * uni_volume
           val_l += val * l_gain
           val_r += val * r_gain
         }

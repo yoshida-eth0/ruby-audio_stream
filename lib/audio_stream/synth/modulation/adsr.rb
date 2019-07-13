@@ -3,6 +3,14 @@ module AudioStream
     module Modulation
       class Adsr
 
+        # @param attack [Float] attack sec (0.0~)
+        # @param attack_curve [Synth::Curve]
+        # @param hold [Float] hold sec (0.0~)
+        # @param decay [Float] decay sec (0.0~)
+        # @param sustain_curve [Synth::Curve]
+        # @param sustain [Float] sustain sec (0.0~)
+        # @param release [Float] release sec (0.0~)
+        # @param release_curve [Synth::Curve]
         def initialize(attack:, attack_curve: Curve::EaseOut, hold: 0.0, decay:, sustain_curve: Curve::EaseOut, sustain:, release:, release_curve: Curve::EaseOut)
           @attack = attack
           @attack_curve = attack_curve
@@ -58,6 +66,7 @@ module AudioStream
             }
 
             # sustain
+            # TODO: raise volume 0 note off
             if sustain
               loop {
                 yld << 0.0
@@ -66,7 +75,7 @@ module AudioStream
           end.each(&block)
         end
 
-        def amp_generator(note_perform, sustain: true, &block)
+        def generator(note_perform, sustain: true, &block)
           Enumerator.new do |y|
             samplerate = note_perform.synth.soundinfo.samplerate
 
@@ -84,7 +93,21 @@ module AudioStream
             }
           end.each(&block)
         end
-        alias_method :balance_generator, :amp_generator
+
+
+        def amp_generator(note_perform, depth, sustain: true, &block)
+          bottom = 1.0 - depth
+
+          generator(note_perform, sustain: sustain).lazy.map {|val|
+            val * depth + bottom
+          }.each(&block)
+        end
+
+        def balance_generator(note_perform, depth, sustain: true, &block)
+          generator(note_perform, sustain: sustain).lazy.map {|val|
+            val * depth
+          }.each(&block)
+        end
 
         def plot(samplerate=44100)
           note_on = note_on_envelope(samplerate, sustain: false)
