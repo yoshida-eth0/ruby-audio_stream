@@ -13,11 +13,8 @@ module AudioStream
     def each(&block)
       Enumerator.new do |y|
         @buffers.each {|buf|
-          sync.yield
-          sync.resume_wait
           y << buf
         }
-        sync.finish
       end.each(&block)
     end
   end

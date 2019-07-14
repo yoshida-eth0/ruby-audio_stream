@@ -18,8 +18,12 @@ module AudioStream
     def stream
       @stream ||= Rx::Observable.create do |observer|
         each {|buf|
+          sync.resume_wait
           observer.on_next(buf)
+          sync.yield
         }
+        sync.resume_wait
+        sync.finish
         observer.on_completed
       end.publish
     end

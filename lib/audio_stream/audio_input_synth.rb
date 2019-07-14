@@ -17,14 +17,9 @@ module AudioStream
     def each(&block)
       Enumerator.new do |y|
         loop {
-          sync.yield
-
           buf = @synth.next
-
-          sync.resume_wait
           y << buf
         }
-        sync.finish
       end.each(&block)
     end
   end

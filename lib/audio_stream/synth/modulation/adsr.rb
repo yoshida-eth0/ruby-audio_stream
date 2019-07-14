@@ -108,7 +108,7 @@ module AudioStream
           }.each(&block)
         end
 
-        def plot(samplerate=44100)
+        def plot_data(samplerate: 44100)
           note_on = note_on_envelope(samplerate, sustain: false)
           note_off = note_off_envelope(samplerate, sustain: false)
           last = 0.0
@@ -127,7 +127,12 @@ module AudioStream
             ys << y * last
           }
 
-          Plotly::Plot.new(data: [{x: xs, y: ys}])
+          {x: xs, y: ys}
+        end
+
+        def plot(samplerate: 44100)
+          data = plot_data(samplerate: samplerate)
+          Plotly::Plot.new(data: [data])
         end
       end
     end

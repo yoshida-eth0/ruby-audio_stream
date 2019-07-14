@@ -1,6 +1,7 @@
 module AudioStream
   module Synth
     module Shape
+      # Basic
       Sine = ->(phase) { Math.sin(phase * 2 * Math::PI) }
       Sawtooth = ->(phase) { ((phase + 0.5) % 1) * 2 - 1 }
       Square = ->(phase) { 0.5<=((phase + 0.5) % 1) ? 1.0 : -1.0 }
@@ -10,14 +11,22 @@ module AudioStream
         t==1 ? (2-(phase % 0.5)*4) :
         t==2 ? (-(phase % 0.5)*4) : (phase % 0.5)*4-2
       }
+
+      # Noise
       WhiteNoise = ->(phase) { Random.rand(-1.0...1.0) }
 
+      # LFO
+      RampUp = ->(phase) { (phase % 1) * 2 - 1 }
+      RampDown = ->(phase) { (phase % 1) * -2 + 1 }
+
+      # Complex
       self.constants.tap {|consts|
         consts.each {|a|
           consts.each {|b|
             if a!=b
               eval "#{a}#{b} = ->(phase) {
-                        (#{a}[phase] + #{b}[phase]) / 2 }"
+                      (#{a}[phase] + #{b}[phase]) / 2
+                    }"
             end
           }
         }

@@ -12,6 +12,10 @@ module AudioStream
       @sync_thread = Thread.start {
         loop {
           @inputs.each {|t|
+            t.sync.resume
+          }
+
+          @inputs.each {|t|
             stat = t.sync.yield_wait
             if stat==Sync::COMPLETED
               @inputs.delete(t)
@@ -21,10 +25,6 @@ module AudioStream
           if @inputs.length==0
             break
           end
-
-          @inputs.each {|t|
-            t.sync.resume
-          }
         }
       }
     end

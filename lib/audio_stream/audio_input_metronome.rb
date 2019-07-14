@@ -22,8 +22,6 @@ module AudioStream
         offset = 0
 
         Range.new(0, @repeat).each {|_|
-          sync.yield
-
           if count<1
             buf = Buffer.float(@soundinfo.window_size, @soundinfo.channels)
             case @soundinfo.channels
@@ -39,15 +37,12 @@ module AudioStream
             end
             offset += @soundinfo.window_size
 
-            sync.resume_wait
             y << buf
           else
-            sync.resume_wait
             y << empty_buf.clone
           end
           count = (count + 1) % period
         }
-        sync.finish
       end.each(&block)
     end
   end

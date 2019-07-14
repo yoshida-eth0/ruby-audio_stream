@@ -22,11 +22,8 @@ module AudioStream
         buf = Buffer.float(@soundinfo.window_size, @sound.info.channels)
         while @sound.read(buf)!=0
           buf.real_size = buf.size
-          sync.yield
-          sync.resume_wait
           y << buf.clone
         end
-        sync.finish
       end.each(&block)
     end
   end

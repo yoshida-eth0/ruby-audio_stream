@@ -20,8 +20,6 @@ module AudioStream
         offset = 0
 
         Range.new(0, @repeat).each {|_|
-          sync.yield
-
           case @soundinfo.channels
           when 1
             @soundinfo.window_size.times.each {|i|
@@ -35,10 +33,8 @@ module AudioStream
           end
           offset += @soundinfo.window_size
 
-          sync.resume_wait
           y << buf.clone
         }
-        sync.finish
       end.each(&block)
     end
   end

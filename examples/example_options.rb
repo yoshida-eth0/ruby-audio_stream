@@ -5,18 +5,25 @@ include AudioStream
 include AudioStream::Fx
 
 
+$soundinfo = SoundInfo.new(
+  channels: 1,
+  samplerate: 44100,
+  window_size: 1024,
+  format: RubyAudio::FORMAT_WAV|RubyAudio::FORMAT_PCM_16
+)
+
 $input_stream = nil
 
 op = OptionParser.new do |opt|
   opt.on('-f path', 'input file path') {|v|
     if File.exists?(v)
-      $input = AudioInput.file(v)
+      $input = AudioInput.file(v, soundinfo: $soundinfo)
     else
       raise "No such input file: #{v}"
     end
   }
   opt.on('-d device', 'input device name') {|v|
-    device = AudioInputDevice.devices.select{|d| d.name.downcase.include?(v.downcase)}.first
+    device = AudioInputDevice.devices(soundinfo: $soundinfo).select{|d| d.name.downcase.include?(v.downcase)}.first
     if device
       $input = device
     else
@@ -40,18 +47,10 @@ op = OptionParser.new do |opt|
     puts
 
     puts "Found input devices:"
-    AudioInputDevice.devices.each {|d|
+    AudioInputDevice.devices(soundinfo: $soundinfo).each {|d|
       puts "    #{d.name}"
     }
 
     exit
   end
 end
-
-
-$soundinfo = SoundInfo.new(
-  channels: 1,
-  samplerate: 44100,
-  window_size: 1024,
-  format: RubyAudio::FORMAT_WAV|RubyAudio::FORMAT_PCM_16
-)

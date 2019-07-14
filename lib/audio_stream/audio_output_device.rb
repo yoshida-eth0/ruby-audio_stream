@@ -47,18 +47,18 @@ module AudioStream
       @sync.finish
     end
 
-    def self.default_device(window_size=1024)
+    def self.default_device(soundinfo:)
       dev = CoreAudio.default_output_device
-      new(dev, window_size)
+      new(dev, soundinfo: soundinfo)
     end
 
-    def self.devices(window_size=1024)
+    def self.devices(soundinfo:)
       CoreAudio.devices
         .select{|dev|
           0<dev.output_stream.channels
         }
         .map {|dev|
-          new(dev, window_size)
+          new(dev, soundinfo: soundinfo)
         }
     end
   end

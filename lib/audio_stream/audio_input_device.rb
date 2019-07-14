@@ -22,17 +22,13 @@ module AudioStream
         buf = Buffer.float(@soundinfo.window_size, channels)
 
         loop {
-          sync.yield
-
           na = @inbuf.read(@soundinfo.window_size)
           @soundinfo.window_size.times {|i|
             buf[i] = na[(na.dim*i)...(na.dim*(i+1))].to_a.map{|s| s / 0x7FFF.to_f}
           }
 
-          sync.resume_wait
           y << buf.clone
         }
-        sync.finish
       end.each(&block)
     end
 
