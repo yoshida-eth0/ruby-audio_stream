@@ -36,7 +36,7 @@ module AudioStream
           bufs = @performs.values.map(&:next)
 
           # delete released note performs
-          @performs.delete_if{|teno_num, per| per.released?}
+          @performs.delete_if{|note_num, per| per.released?}
 
           bufs.compact.inject(:+)
         else

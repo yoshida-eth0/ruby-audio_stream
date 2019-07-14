@@ -20,7 +20,6 @@ module AudioStream
         begin
           @oscs.map(&:next).inject(:+)
         rescue StopIteration => e
-puts "note released: #{@tune.note_num}"
           @released = true
           nil
         end

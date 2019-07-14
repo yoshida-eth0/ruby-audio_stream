@@ -11,6 +11,18 @@ module AudioStream
         t==2 ? (-(phase % 0.5)*4) : (phase % 0.5)*4-2
       }
       WhiteNoise = ->(phase) { Random.rand(-1.0...1.0) }
+
+      self.constants.tap {|consts|
+        consts.each {|a|
+          consts.each {|b|
+            if a!=b
+              eval "#{a}#{b} = ->(phase) {
+                        (#{a}[phase] + #{b}[phase]) / 2 }"
+            end
+          }
+        }
+      }
+
     end
   end
 end
