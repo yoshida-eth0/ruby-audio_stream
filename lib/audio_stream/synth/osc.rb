@@ -2,17 +2,17 @@ module AudioStream
   module Synth
     class Osc
 
-      # @param shape [Synth::Shape]
-      # @param volume [Float] mute=0.0 max=1.0
-      # @param pan [Float] left=-1.0 center=0.0 right=1.0 (-1.0~1.0)
-      # @param tune_semis [Integer] pitch semitone
-      # @param tune_cents [Integer] pitch cent
+      # @param shape [Synth::Shape] oscillator waveform shape
+      # @param volume [Float] oscillator volume. mute=0.0 max=1.0
+      # @param pan [Float] oscillator pan. left=-1.0 center=0.0 right=1.0 (-1.0~1.0)
+      # @param tune_semis [Integer] oscillator pitch semitone
+      # @param tune_cents [Integer] oscillator pitch cent
       # @param sym [nil] TODO not implemented
-      # @param phase [Float] start phase percent (0.0~1.0,nil) nil=random
+      # @param phase [Float] oscillator waveform shape start phase percent (0.0~1.0,nil) nil=random
       # @param sync [Integer] TODO not implemented
-      # @param uni_num [Float] voicing number (1.0~16.0)
-      # @param uni_detune [Float] voicing detune percent (0.0~1.0)
-      def initialize(shape: Shape::Sine, volume: 1.0, pan: 0.0, tune_semis: 0, tune_cents: 0, sym: 0, phase: nil, sync: 0, uni_num: 1.0, uni_detune: 0.3)
+      # @param uni_num [Float] oscillator voicing number (1.0~16.0)
+      # @param uni_detune [Float] oscillator voicing detune percent. 0.01=1cent 1.0=semitone (0.0~1.0)
+      def initialize(shape: Shape::Sine, volume: 1.0, pan: 0.0, tune_semis: 0, tune_cents: 0, sym: 0, phase: nil, sync: 0, uni_num: 1.0, uni_detune: 0.0)
         @shape = shape
 
         @volume = Param.create(volume)
@@ -31,17 +31,18 @@ module AudioStream
       def generator(note_perform, &block)
         Enumerator.new do |y|
           synth = note_perform.synth
+          amp = synth.amp
           channels = synth.soundinfo.channels
           samplerate = synth.soundinfo.samplerate
           window_size = synth.soundinfo.window_size
 
-          volume_mod = Param.amp_generator(note_perform, synth.volume, @volume)
-          pan_mod = Param.balance_generator(note_perform, synth.pan, @pan)
-          tune_semis_mod = Param.balance_generator(note_perform, synth.tune_semis, @tune_semis)
-          tune_cents_mod = Param.balance_generator(note_perform, synth.tune_cents, @tune_cents)
+          volume_mod = Param.amp_generator(note_perform, @volume, amp.volume)
+          pan_mod = Param.balance_generator(note_perform, @pan, amp.pan)
+          tune_semis_mod = Param.balance_generator(note_perform, @tune_semis, amp.tune_semis)
+          tune_cents_mod = Param.balance_generator(note_perform, @tune_cents, amp.tune_cents)
 
-          uni_num_mod = Param.balance_generator(note_perform, @uni_num)
-          uni_detune_mod = Param.balance_generator(note_perform, @uni_detune)
+          uni_num_mod = Param.balance_generator(note_perform, @uni_num, amp.uni_num, center: 1.0)
+          uni_detune_mod = Param.balance_generator(note_perform, @uni_detune, amp.uni_detune)
           unison = Unison.new(note_perform, @shape, @phase)
 
           case channels

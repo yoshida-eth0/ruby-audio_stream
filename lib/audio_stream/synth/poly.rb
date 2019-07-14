@@ -3,28 +3,16 @@ module AudioStream
     class Poly
 
       attr_reader :oscs
-
-      attr_reader :volume
-      attr_reader :pan
-      attr_reader :tune_semis
-      attr_reader :tune_cents
+      attr_reader :amp
 
       attr_reader :soundinfo
 
       # @param oscs [Osc] oscillator
-      # @param volume [Float] master volume. mute=0.0 max=1.0
-      # @param pan [Float] master pan. left=-1.0 center=0.0 right=1.0 (-1.0~1.0)
-      # @param tune_semis [Integer] master pitch semitone
-      # @param tune_cents [Integer] master pitch cent
+      # @param amp [Amp] amplifier
       # @param soundinfo [SoundInfo]
-      def initialize(oscs:, volume: 1.0, pan: 0.0, tune_semis: 0, tune_cents: 0, soundinfo:)
+      def initialize(oscs:, amp:, soundinfo:)
         @oscs = [oscs].flatten.compact
-
-        @volume = Param.create(volume)
-        @pan = Param.create(pan)
-
-        @tune_semis = Param.create(tune_semis)
-        @tune_cents = Param.create(tune_cents)
+        @amp = amp
 
         @soundinfo = soundinfo
 

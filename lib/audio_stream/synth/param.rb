@@ -61,9 +61,9 @@ module AudioStream
         end
       end
 
-      def self.balance_generator(note_perform, param1, param2=nil)
+      def self.balance_generator(note_perform, param1, param2=nil, center: 0)
         if param2==nil
-          param2 = Param.new(0.0)
+          param2 = Param.new(center)
         end
 
         # value
@@ -81,7 +81,7 @@ module AudioStream
         Enumerator.new do |y|
           loop {
             depth = mods.map(&:next).sum
-            y << value + depth
+            y << value - center + depth
           }
         end
       end
