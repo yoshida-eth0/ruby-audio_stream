@@ -1,14 +1,14 @@
 module AudioStream
   module Synth
-    class NotePerform
+    class Note
 
       attr_reader :synth
       attr_reader :tune
 
       def initialize(synth, tune)
         @synth = synth
-        @oscs = synth.oscs.map {|osc|
-          osc.generator(self)
+        @processors = synth.oscs.map {|osc|
+          synth.processor.generator(osc, self)
         }
 
         @tune = tune
@@ -18,7 +18,7 @@ module AudioStream
 
       def next
         begin
-          @oscs.map(&:next).inject(:+)
+          @processors.map(&:next).inject(:+)
         rescue StopIteration => e
           @released = true
           nil

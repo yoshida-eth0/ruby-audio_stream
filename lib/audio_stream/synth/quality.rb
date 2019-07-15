@@ -1,8 +1,8 @@
 module AudioStream
   module Synth
     module Quality
-      HIGH = :high
-      LOW = :low
+      HIGH = :High
+      LOW = :Low
     end
   end
 end

@@ -4,6 +4,7 @@ module AudioStream
 
       attr_reader :oscs
       attr_reader :amp
+      attr_reader :processor
 
       attr_reader :quality
       attr_reader :soundinfo
@@ -18,15 +19,16 @@ module AudioStream
         @quality = quality
         @soundinfo = soundinfo
 
-        @performs = {}
+        @processor = Processor.create(quality)
+        @notes = {}
       end
 
       def next
-        if 0<@performs.length
-          bufs = @performs.values.map(&:next)
+        if 0<@notes.length
+          bufs = @notes.values.map(&:next)
 
-          # delete released note performs
-          @performs.delete_if{|note_num, per| per.released?}
+          # delete released notes
+          @notes.delete_if {|note_num, note| note.released? }
 
           bufs.compact.inject(:+)
         else
@@ -36,21 +38,21 @@ module AudioStream
 
       def note_on(tune)
         # Note Off
-        perform = @performs[tune.note_num]
-        if perform
-          perform.note_off!
+        note = @notes[tune.note_num]
+        if note
+          note.note_off!
         end
 
         # Note On
-        perform = NotePerform.new(self, tune)
-        @performs[tune.note_num] = perform
+        note = Note.new(self, tune)
+        @notes[tune.note_num] = note
       end
 
       def note_off(tune)
         # Note Off
-        perform = @performs[tune.note_num]
-        if perform
-          perform.note_off!
+        note = @notes[tune.note_num]
+        if note
+          note.note_off!
         end
       end
     end
