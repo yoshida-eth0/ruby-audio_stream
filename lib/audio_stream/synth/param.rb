@@ -36,7 +36,7 @@ module AudioStream
         end
       end
 
-      def self.amp_generator(note_perform, param1, param2=nil)
+      def self.amp_generator(note_perform, samplerate, param1, param2=nil)
         if param2==nil
           param2 = Param.new(1.0)
         end
@@ -47,10 +47,10 @@ module AudioStream
         # mods
         mods = []
         param1.mods.each {|mod, depth|
-          mods << mod.amp_generator(note_perform, depth)
+          mods << mod.amp_generator(note_perform, samplerate, depth)
         }
         param2.mods.each {|mod, depth|
-          mods << mod.amp_generator(note_perform, depth)
+          mods << mod.amp_generator(note_perform, samplerate, depth)
         }
 
         Enumerator.new do |y|
@@ -61,7 +61,7 @@ module AudioStream
         end
       end
 
-      def self.balance_generator(note_perform, param1, param2=nil, center: 0)
+      def self.balance_generator(note_perform, samplerate, param1, param2=nil, center: 0)
         if param2==nil
           param2 = Param.new(center)
         end
@@ -72,10 +72,10 @@ module AudioStream
         # mods
         mods = []
         param1.mods.each {|mod, depth|
-          mods << mod.balance_generator(note_perform, depth)
+          mods << mod.balance_generator(note_perform, samplerate, depth)
         }
         param2.mods.each {|mod, depth|
-          mods << mod.balance_generator(note_perform, depth)
+          mods << mod.balance_generator(note_perform, samplerate, depth)
         }
 
         Enumerator.new do |y|

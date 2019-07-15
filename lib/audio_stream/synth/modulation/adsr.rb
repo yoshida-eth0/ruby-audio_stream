@@ -74,10 +74,8 @@ module AudioStream
           end.each(&block)
         end
 
-        def generator(note_perform, release_sustain:, &block)
+        def generator(note_perform, samplerate, release_sustain:, &block)
           Enumerator.new do |y|
-            samplerate = note_perform.synth.soundinfo.samplerate
-
             note_on = note_on_envelope(samplerate, sustain: true)
             note_off = note_off_envelope(samplerate, sustain: release_sustain)
             last = 0.0
@@ -94,16 +92,16 @@ module AudioStream
         end
 
 
-        def amp_generator(note_perform, depth, &block)
+        def amp_generator(note_perform, samplerate, depth, &block)
           bottom = 1.0 - depth
 
-          generator(note_perform, release_sustain: 0.0<bottom).lazy.map {|val|
+          generator(note_perform, samplerate, release_sustain: 0.0<bottom).lazy.map {|val|
             val * depth + bottom
           }.each(&block)
         end
 
-        def balance_generator(note_perform, depth, &block)
-          generator(note_perform).lazy.map {|val|
+        def balance_generator(note_perform, samplerate, depth, &block)
+          generator(note_perform, samplerate).lazy.map {|val|
             val * depth
           }.each(&block)
         end

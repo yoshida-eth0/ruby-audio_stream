@@ -8,6 +8,7 @@ require 'audio_stream/synth/unison'
 require 'audio_stream/synth/modulation'
 require 'audio_stream/synth/note_perform'
 require 'audio_stream/synth/tune'
+require 'audio_stream/synth/quality'
 
 module AudioStream
   module Synth

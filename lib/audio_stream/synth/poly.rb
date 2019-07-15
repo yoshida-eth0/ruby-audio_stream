@@ -5,15 +5,17 @@ module AudioStream
       attr_reader :oscs
       attr_reader :amp
 
+      attr_reader :quality
       attr_reader :soundinfo
 
       # @param oscs [Osc] oscillator
       # @param amp [Amp] amplifier
       # @param soundinfo [SoundInfo]
-      def initialize(oscs:, amp:, soundinfo:)
+      def initialize(oscs:, amp:, quality: Quality::LOW, soundinfo:)
         @oscs = [oscs].flatten.compact
         @amp = amp
 
+        @quality = quality
         @soundinfo = soundinfo
 
         @performs = {}

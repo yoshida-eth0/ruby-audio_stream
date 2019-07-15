@@ -18,9 +18,8 @@ module AudioStream
           @rate = rate
         end
 
-        def generator(note_perform, &block)
+        def generator(note_perform, samplerate, &block)
           Enumerator.new do |yld|
-            samplerate = note_perform.synth.soundinfo.samplerate
             delta = @rate / samplerate
 
             pos = ShapePos.new(phase: @phase)
@@ -47,17 +46,17 @@ module AudioStream
           end.each(&block)
         end
 
-        def amp_generator(note_perform, depth, &block)
+        def amp_generator(note_perform, samplerate, depth, &block)
           bottom = 1.0 - depth
 
-          generator(note_perform).lazy.map {|val|
+          generator(note_perform, samplerate).lazy.map {|val|
             val = (val + 1) / 2
             val * depth + bottom
           }.each(&block)
         end
 
-        def balance_generator(note_perform, depth, &block)
-          generator(note_perform).lazy.map {|val|
+        def balance_generator(note_perform, samplerate, depth, &block)
+          generator(note_perform, samplerate).lazy.map {|val|
             val * depth
           }.each(&block)
         end
