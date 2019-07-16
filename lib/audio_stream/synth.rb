@@ -1,4 +1,5 @@
 require 'audio_stream/synth/poly'
+require 'audio_stream/synth/mono'
 require 'audio_stream/synth/osc'
 require 'audio_stream/synth/amp'
 require 'audio_stream/synth/shape'

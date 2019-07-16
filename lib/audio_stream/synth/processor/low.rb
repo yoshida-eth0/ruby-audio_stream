@@ -12,7 +12,7 @@ module AudioStream
 
             volume_mod = Param.amp_generator(note, samplerate, osc.volume, amp.volume)
             pan_mod = Param.balance_generator(note, samplerate, osc.pan, amp.pan)
-            tune_semis_mod = Param.balance_generator(note, samplerate, osc.tune_semis, amp.tune_semis)
+            tune_semis_mod = Param.balance_generator(note, samplerate, osc.tune_semis, amp.tune_semis, synth.glide&.to_param)
             tune_cents_mod = Param.balance_generator(note, samplerate, osc.tune_cents, amp.tune_cents)
 
             uni_num_mod = Param.balance_generator(note, samplerate, osc.uni_num, amp.uni_num, center: 1.0)

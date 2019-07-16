@@ -36,21 +36,18 @@ module AudioStream
         end
       end
 
-      def self.amp_generator(note_perform, samplerate, param1, param2=nil)
-        if param2==nil
-          param2 = Param.new(1.0)
-        end
+      def self.amp_generator(note_perform, samplerate, *params)
+        params = params.flatten.compact
 
         # value
-        value = param1.value * param2.value
+        value = params.map(&:value).sum
 
         # mods
         mods = []
-        param1.mods.each {|mod, depth|
-          mods << mod.amp_generator(note_perform, samplerate, depth)
-        }
-        param2.mods.each {|mod, depth|
-          mods << mod.amp_generator(note_perform, samplerate, depth)
+        params.each {|param|
+          param.mods.each {|mod, depth|
+            mods << mod.amp_generator(note_perform, samplerate, depth)
+          }
         }
 
         Enumerator.new do |y|
@@ -61,27 +58,25 @@ module AudioStream
         end
       end
 
-      def self.balance_generator(note_perform, samplerate, param1, param2=nil, center: 0)
-        if param2==nil
-          param2 = Param.new(center)
-        end
+      def self.balance_generator(note_perform, samplerate, *params, center: 0)
+        params = params.flatten.compact
 
         # value
-        value = param1.value + param2.value
+        value = params.map(&:value).sum
+        value -= (params.length - 1) * center
 
         # mods
         mods = []
-        param1.mods.each {|mod, depth|
-          mods << mod.balance_generator(note_perform, samplerate, depth)
-        }
-        param2.mods.each {|mod, depth|
-          mods << mod.balance_generator(note_perform, samplerate, depth)
+        params.each {|param|
+          param.mods.each {|mod, depth|
+            mods << mod.balance_generator(note_perform, samplerate, depth)
+          }
         }
 
         Enumerator.new do |y|
           loop {
             depth = mods.map(&:next).sum
-            y << value - center + depth
+            y << value + depth
           }
         end
       end

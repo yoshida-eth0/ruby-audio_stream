@@ -9,6 +9,7 @@ module AudioStream
       attr_reader :quality
       attr_reader :soundinfo
 
+      attr_reader :glide
       attr_accessor :pitch_bend
 
       # @param oscs [Osc] oscillator
