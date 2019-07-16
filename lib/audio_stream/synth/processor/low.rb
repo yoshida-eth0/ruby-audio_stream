@@ -25,7 +25,7 @@ module AudioStream
                 buf = Buffer.float(window_size, channels)
 
                 volume = volume_mod.next
-                tune_semis = tune_semis_mod.next
+                tune_semis = tune_semis_mod.next + synth.pitch_bend
                 tune_cents = tune_cents_mod.next
 
                 uni_num = uni_num_mod.next
@@ -44,7 +44,7 @@ module AudioStream
 
                 volume = volume_mod.next
                 pan = pan_mod.next
-                tune_semis = tune_semis_mod.next
+                tune_semis = tune_semis_mod.next + synth.pitch_bend
                 tune_cents = tune_cents_mod.next
 
                 uni_num = uni_num_mod.next

@@ -9,6 +9,8 @@ module AudioStream
       attr_reader :quality
       attr_reader :soundinfo
 
+      attr_accessor :pitch_bend
+
       # @param oscs [Osc] oscillator
       # @param amp [Amp] amplifier
       # @param soundinfo [SoundInfo]
@@ -21,6 +23,7 @@ module AudioStream
 
         @processor = Processor.create(quality)
         @notes = {}
+        @pitch_bend = 0.0
       end
 
       def next

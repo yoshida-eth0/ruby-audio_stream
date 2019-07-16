@@ -49,7 +49,11 @@ bufs = []
 synth.note_on(Synth::Tune.new(60))
 synth.note_on(Synth::Tune.new(62))
 synth.note_on(Synth::Tune.new(64))
-bufs += 50.times.map {|_| synth.next}
+bufs += 10.times.map {|_| synth.next}
+synth.pitch_bend = 1
+bufs += 10.times.map {|_| synth.next}
+synth.pitch_bend = 2
+bufs += 10.times.map {|_| synth.next}
 
 synth.note_off(Synth::Tune.new(60))
 synth.note_off(Synth::Tune.new(62))

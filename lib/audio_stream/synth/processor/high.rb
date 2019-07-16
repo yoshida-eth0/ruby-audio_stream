@@ -26,7 +26,7 @@ module AudioStream
 
                 window_size.times.each {|i|
                   volume = volume_mod.next
-                  tune_semis = tune_semis_mod.next
+                  tune_semis = tune_semis_mod.next + synth.pitch_bend
                   tune_cents = tune_cents_mod.next
 
                   uni_num = uni_num_mod.next
@@ -45,7 +45,7 @@ module AudioStream
                 window_size.times.each {|i|
                   volume = volume_mod.next
                   pan = pan_mod.next
-                  tune_semis = tune_semis_mod.next
+                  tune_semis = tune_semis_mod.next + synth.pitch_bend
                   tune_cents = tune_cents_mod.next
 
                   uni_num = uni_num_mod.next
