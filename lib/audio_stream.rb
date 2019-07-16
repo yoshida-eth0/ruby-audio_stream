@@ -23,7 +23,6 @@ require 'audio_stream/audio_output_file'
 require 'audio_stream/audio_output_device'
 require 'audio_stream/fx'
 require 'audio_stream/plot'
-require 'audio_stream/utils'
 
 module AudioStream
   include NumRu

@@ -30,9 +30,9 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "rake", "~> 12.0"
   spec.add_development_dependency "minitest", "~> 5.0"
 
-  spec.add_development_dependency "ruby-audio", "~> 1.6.1"
-  spec.add_development_dependency "coreaudio", "~> 0.0.12"
-  spec.add_development_dependency "ruby-fftw3", "~> 1.0.2"
-  spec.add_development_dependency "rx", "~> 0.0.3"
-  spec.add_development_dependency "rbplotly", "~> 0.1.2"
+  spec.add_dependency "ruby-audio", "~> 1.6.1"
+  spec.add_dependency "coreaudio", "~> 0.0.12"
+  spec.add_dependency "ruby-fftw3", "~> 1.0.2"
+  spec.add_dependency "rx", "~> 0.0.3"
+  spec.add_dependency "rbplotly", "~> 0.1.2"
 end
