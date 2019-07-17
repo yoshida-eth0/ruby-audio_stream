@@ -8,8 +8,8 @@ Gem::Specification.new do |spec|
   spec.authors       = ["Yoshida Tetsuya"]
   spec.email         = ["yoshida.eth0@gmail.com"]
 
-  spec.summary       = %q{}
-  spec.description   = %q{}
+  spec.summary       = %q{AudioStream is a Digital Audio Workstation for CLI}
+  spec.description   = %q{AudioStream is a Digital Audio Workstation for CLI}
   spec.homepage      = "https://github.com/yoshida-eth0/ruby-audio_stream"
   spec.license       = "MIT"
 
