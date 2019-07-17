@@ -2,14 +2,12 @@ module AudioStream
   class AudioInputFile
     include AudioInput
 
+    attr_reader :path
+
     def initialize(path, soundinfo:)
       @path = path
       @sound = RubyAudio::Sound.open(path)
       @soundinfo = soundinfo
-    end
-
-    def name
-      @path
     end
 
     def seek(frames, whence=IO::SEEK_SET)

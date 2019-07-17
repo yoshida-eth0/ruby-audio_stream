@@ -6,10 +6,6 @@ module AudioStream
       @buffers = [buffers].flatten.compact
     end
 
-    def name
-      "Buffer"
-    end
-
     def each(&block)
       Enumerator.new do |y|
         @buffers.each {|buf|
