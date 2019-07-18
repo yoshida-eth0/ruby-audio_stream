@@ -13,9 +13,9 @@ module AudioStream
         @highfreq = 4000.0
         @highgain = highgain
 
-        @low_filter = LowShelfFilter.new(soundinfo, freq: @lowfreq, q: 1.0/Math.sqrt(2.0), gain: @lowgain)
-        @mid_filter = PeakingFilter.new(soundinfo, freq: @midfreq, bandwidth: 1.0/Math.sqrt(2.0), gain: @midgain)
-        @high_filter = HighShelfFilter.new(soundinfo, freq: @highfreq, q: 1.0/Math.sqrt(2.0), gain: @highgain)
+        @low_filter = LowShelfFilter.create(soundinfo, freq: @lowfreq, q: 1.0/Math.sqrt(2.0), gain: @lowgain)
+        @mid_filter = PeakingFilter.create(soundinfo, freq: @midfreq, bandwidth: 1.0/Math.sqrt(2.0), gain: @midgain)
+        @high_filter = HighShelfFilter.create(soundinfo, freq: @highfreq, q: 1.0/Math.sqrt(2.0), gain: @highgain)
       end
 
       def process!(input)

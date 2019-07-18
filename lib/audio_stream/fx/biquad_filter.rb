@@ -11,11 +11,16 @@ module AudioStream
 
       FilterCoef = Struct.new("FilterCoef", :a0, :a1, :a2, :b0, :b1, :b2)
 
-      def initialize
+      def initialize(soundinfo)
+        @samplerate = soundinfo.samplerate.to_f
+        init_buffer
+      end
+
+      def init_buffer
         @filter_bufs = [FilterBuffer.create, FilterBuffer.create]
       end
 
-      def filter_coef
+      def update_coef(*args, **kwargs)
         raise Error, "#{self.class.name}.filter_coef is not implemented"
       end
 
