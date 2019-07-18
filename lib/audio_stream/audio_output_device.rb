@@ -48,12 +48,12 @@ module AudioStream
     end
 
     def self.default_device(soundinfo:)
-      dev = CoreAudio.default_output_device
+      dev = CoreAudio.default_output_device({nominal_rate: soundinfo.samplerate})
       new(dev, soundinfo: soundinfo)
     end
 
     def self.devices(soundinfo:)
-      CoreAudio.devices
+      CoreAudio.devices({nominal_rate: soundinfo.samplerate})
         .select{|dev|
           0<dev.output_stream.channels
         }
