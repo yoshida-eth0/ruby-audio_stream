@@ -47,6 +47,17 @@ module AudioStream
         input
       end
 
+      def process_mono(in0)
+        process_one(in0, @filter_bufs[0])
+      end
+
+      def process_stereo(inp)
+        [
+          process_one(inp[0], @filter_bufs[0]),
+          process_one(inp[1], @filter_bufs[1])
+        ]
+      end
+
       def process_one(in0, b)
         c = @filter_coef
         out0 = c.b0/c.a0 * in0 + c.b1/c.a0 * b.in1 + c.b2/c.a0 * b.in2 - c.a1/c.a0 * b.out1 - c.a2/c.a0 * b.out2
