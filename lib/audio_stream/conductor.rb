@@ -7,32 +7,34 @@ module AudioStream
 
     def connect
       @outputs.map(&:connect)
-      @input_connections = @inputs.map(&:connect)
+      @inputs.map(&:connect)
 
       @sync_thread = Thread.start {
-        loop {
-          @inputs.each {|t|
-            t.sync.resume
-          }
+        catch :break do
+          loop {
+            @inputs.each {|t|
+              t.sync.resume
+            }
 
-          @inputs.each {|t|
-            stat = t.sync.yield_wait
-            if stat==Sync::COMPLETED
-              @inputs.delete(t)
+            @inputs.each {|t|
+              stat = t.sync.yield_wait
+              if stat==Sync::COMPLETED
+                throw :break
+              end
+            }
+
+            if @inputs.length==0
+              throw :break
             end
           }
-
-          if @inputs.length==0
-            break
-          end
-        }
+        end
       }
     end
 
     def join
-      @outputs.map(&:join)
-      @input_connections.map(&:join)
       @sync_thread.join
+      @inputs.map(&:disconnect)
+      @outputs.map(&:disconnect)
     end
   end
 end

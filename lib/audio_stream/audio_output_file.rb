@@ -11,10 +11,7 @@ module AudioStream
     end
 
     def disconnect
-    end
-
-    def join
-      @sync.yield_wait
+      @sound.close
     end
 
     def on_next(input)
@@ -28,8 +25,7 @@ module AudioStream
     end
 
     def on_completed
-      @sound.close
-      @sync.finish
+      disconnect
     end
   end
 end

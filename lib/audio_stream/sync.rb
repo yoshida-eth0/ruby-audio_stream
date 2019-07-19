@@ -4,9 +4,8 @@ module AudioStream
     COMPLETED = :completed
 
     def initialize
-      buffering = 1
-      @resume_queue = SizedQueue.new(buffering)
-      @yield_queue = SizedQueue.new(buffering)
+      @resume_queue = SizedQueue.new(1)
+      @yield_queue = SizedQueue.new(1)
     end 
 
     def resume

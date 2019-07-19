@@ -15,6 +15,13 @@ module AudioStream
       }
     end
 
+    def disconnect
+      if @connection
+        @connection.join
+        @connection = nil
+      end
+    end
+
     def stream
       @stream ||= Rx::Observable.create do |observer|
         each {|buf|
@@ -39,10 +46,6 @@ module AudioStream
 
     def self.device(soundinfo:)
       AudioInputDevice.default_device(soundinfo: soundinfo)
-    end
-
-    def self.sin(hz, repeat, soundinfo:)
-      AudioInputSin.new(hz, repeat, soundinfo: soundinfo)
     end
   end
 end

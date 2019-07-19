@@ -3,7 +3,6 @@ module AudioStream
 
     def initialize
       super()
-      @sync = Sync.new
     end
 
     def self.file(fname, soundinfo:)

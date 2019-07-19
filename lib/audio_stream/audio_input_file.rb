@@ -6,8 +6,19 @@ module AudioStream
 
     def initialize(path, soundinfo:)
       @path = path
-      @sound = RubyAudio::Sound.open(path)
       @soundinfo = soundinfo
+    end
+
+    def connect
+      @sound = RubyAudio::Sound.open(@path)
+      super
+    end
+
+    def disconnect
+      if @sound && !@sound.closed?
+        @sound.close
+        super
+      end
     end
 
     def seek(frames, whence=IO::SEEK_SET)

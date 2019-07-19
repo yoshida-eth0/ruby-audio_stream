@@ -17,10 +17,6 @@ module AudioStream
       @buf.stop
     end
 
-    def join
-      @sync.yield_wait
-    end
-
     def on_next(input)
       window_size = input.size
       channels = input.channels
@@ -44,7 +40,7 @@ module AudioStream
     end
 
     def on_completed
-      @sync.finish
+      disconnect
     end
 
     def self.default_device(soundinfo:)

@@ -13,11 +13,21 @@ module AudioStream
       @dev.name
     end
 
+    def connect
+      @inbuf = @dev.input_buffer(@soundinfo.window_size)
+      @inbuf.start
+      super
+    end
+
+    def disconnect
+      if @inbuf
+        @inbuf.stop
+        super
+      end
+    end
+
     def each(&block)
       Enumerator.new do |y|
-        @inbuf = @dev.input_buffer(@soundinfo.window_size)
-        @inbuf.start
-
         channels = @dev.input_stream.channels
         buf = Buffer.float(@soundinfo.window_size, channels)
 
