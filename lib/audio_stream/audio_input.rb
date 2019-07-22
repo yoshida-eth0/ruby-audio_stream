@@ -13,13 +13,15 @@ module AudioStream
       @connection = Thread.start {
         stream.connect
       }
+      self
     end
 
     def disconnect
       if @connection
-        @connection.join
+        @connection.kill
         @connection = nil
       end
+      self
     end
 
     def stream

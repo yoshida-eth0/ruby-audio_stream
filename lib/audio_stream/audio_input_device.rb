@@ -22,12 +22,17 @@ module AudioStream
     def disconnect
       if @inbuf
         @inbuf.stop
-        super
+        @inbuf = nil
       end
+      super
     end
 
     def each(&block)
       Enumerator.new do |y|
+        if !@inbuf
+          raise Error, "Device is not connected. You need to exec #{self.class.name}.connect: #{name}"
+        end
+
         channels = @dev.input_stream.channels
         buf = Buffer.float(@soundinfo.window_size, channels)
 

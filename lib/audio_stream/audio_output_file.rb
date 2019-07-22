@@ -11,7 +11,9 @@ module AudioStream
     end
 
     def disconnect
-      @sound.close
+      if @sound && !@sound.closed?
+        @sound.close
+      end
     end
 
     def on_next(input)

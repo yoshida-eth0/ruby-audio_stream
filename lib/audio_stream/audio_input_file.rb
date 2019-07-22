@@ -17,8 +17,8 @@ module AudioStream
     def disconnect
       if @sound && !@sound.closed?
         @sound.close
-        super
       end
+      super
     end
 
     def seek(frames, whence=IO::SEEK_SET)
@@ -28,7 +28,11 @@ module AudioStream
 
     def each(&block)
       Enumerator.new do |y|
-        buf = Buffer.float(@soundinfo.window_size, @sound.info.channels)
+        if !@sound || @sound.closed?
+          raise Error, "File is not opened. You need to exec #{self.class.name}.connect: #{@path}"
+        end
+
+        buf = Buffer.float(@soundinfo.window_size, @soundinfo.channels)
         while @sound.read(buf)!=0
           buf.real_size = buf.size
           y << buf.clone
