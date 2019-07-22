@@ -8,7 +8,7 @@ module AudioStream
         @level = level
         @feedback = feedback
 
-        @delaysample = soundinfo.samplerate * time / 1000.0
+        @delaysample = (soundinfo.samplerate * time).round
         @delaybuf0 = Array.new(@delaysample, 0.0)
         @delaybuf1 = Array.new(@delaysample, 0.0)
         @seek = 0
