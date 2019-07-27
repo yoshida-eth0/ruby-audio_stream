@@ -2,6 +2,7 @@ require 'ruby-audio'
 require 'coreaudio'
 require 'numru/fftw3'
 require 'rbplotly'
+require 'singleton'
 
 require 'audio_stream/version'
 require 'audio_stream/error'

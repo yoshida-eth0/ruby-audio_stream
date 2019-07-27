@@ -15,14 +15,14 @@ module AudioStream
         
       def initialize(soundinfo, window: nil)
         @samplerate = soundinfo.samplerate.to_f
-        @window = window || HanningWindow.new
+        @window = window || HanningWindow.instance
       end
 
       def process(input)
         window_size = input.size
 
         # mono window
-        input = StereoToMono.new.process(input)
+        input = StereoToMono.instance.process(input)
         @window.process!(input)
 
         gain = input.to_a.flatten.max

@@ -5,7 +5,7 @@ module AudioStream
 
       def initialize(threshold: 0.01)
         @threshold = threshold
-        @window = HanningWindow.new
+        @window = HanningWindow.instance
       end
 
       def process!(input)

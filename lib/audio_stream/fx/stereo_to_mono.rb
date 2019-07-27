@@ -1,6 +1,8 @@
 module AudioStream
   module Fx
     class StereoToMono
+      include Singleton
+
       def process(input)
         case input.channels
         when 1

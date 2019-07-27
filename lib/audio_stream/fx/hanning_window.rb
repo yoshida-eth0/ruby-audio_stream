@@ -1,6 +1,7 @@
 module AudioStream
   module Fx
     class HanningWindow
+      include Singleton
       include BangProcess
 
       def process!(input)

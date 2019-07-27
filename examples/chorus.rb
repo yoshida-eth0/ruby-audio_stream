@@ -22,7 +22,7 @@ stereo_out = AudioOutput.device(soundinfo: $soundinfo)
 # Mixer
 
 track1
-  .fx(MonoToStereo.new)
+  .fx(MonoToStereo.instance)
   .fx(chorus)
   .send_to(bus1, gain: 1.0, pan: 0.0)
 

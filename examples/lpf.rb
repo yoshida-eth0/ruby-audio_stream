@@ -24,7 +24,7 @@ stereo_out = AudioOutput.device(soundinfo: $soundinfo)
 # Mixer
 
 track1
-  .fx(StereoToMono.new)
+  .fx(StereoToMono.instance)
   .fx(lpf)
   .send_to(stereo_out)
 

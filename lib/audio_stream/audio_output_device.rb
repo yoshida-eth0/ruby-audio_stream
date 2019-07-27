@@ -23,9 +23,9 @@ module AudioStream
 
       case @channels
       when 1
-        input = Fx::StereoToMono.new.process(input)
+        input = Fx::StereoToMono.instance.process(input)
       when 2
-        input = Fx::MonoToStereo.new.process(input)
+        input = Fx::MonoToStereo.instance.process(input)
       end
 
       sint_a = input.to_a.flatten.map{|f| (f*0x7FFF).round}

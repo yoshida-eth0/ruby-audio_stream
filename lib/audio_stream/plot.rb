@@ -12,7 +12,7 @@ module AudioStream
     end
 
     def fft(window=nil)
-      window ||= HanningWindow.new
+      window ||= HanningWindow.instance
 
       na = window.process(@input).to_na
       fft = FFTW3.fft(na, FFTW3::FORWARD) / na.length
