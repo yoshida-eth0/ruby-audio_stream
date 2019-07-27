@@ -1,4 +1,4 @@
-require 'audio_stream/core_ext'
+require 'audio_stream'
 require 'optparse'
 
 include AudioStream
@@ -6,7 +6,7 @@ include AudioStream::Fx
 
 
 $soundinfo = SoundInfo.new(
-  channels: 1,
+  channels: 2,
   samplerate: 44100,
   window_size: 1024,
   format: RubyAudio::FORMAT_WAV|RubyAudio::FORMAT_PCM_16

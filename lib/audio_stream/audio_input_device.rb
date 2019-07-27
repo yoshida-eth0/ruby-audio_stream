@@ -14,22 +14,28 @@ module AudioStream
     end
 
     def connect
-      @inbuf = @dev.input_buffer(@soundinfo.window_size)
-      @inbuf.start
-      super
+      if !connected?
+        @inbuf = @dev.input_buffer(@soundinfo.window_size)
+        @inbuf.start
+      end
+      self
     end
 
     def disconnect
-      if @inbuf
+      if connected?
         @inbuf.stop
         @inbuf = nil
       end
       super
     end
 
+    def connected?
+      !!@inbuf
+    end
+
     def each(&block)
       Enumerator.new do |y|
-        if !@inbuf
+        if !connected?
           raise Error, "Device is not connected. You need to exec #{self.class.name}.connect: #{name}"
         end
 

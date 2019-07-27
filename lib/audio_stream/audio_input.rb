@@ -2,6 +2,7 @@ module AudioStream
 
   module AudioInput
     include Enumerable
+    include AudioObservable
 
     attr_reader :connection
 
@@ -9,11 +10,22 @@ module AudioStream
       @sync ||= Sync.new
     end
 
-    def connect
+    def publish
       @connection = Thread.start {
-        stream.connect
+        each {|input|
+          sync.resume_wait
+          notify_next(input)
+          sync.yield
+        }
+        sync.resume_wait
+        notify_complete
+        sync.finish
       }
       self
+    end
+
+    def connect
+      nil
     end
 
     def disconnect
@@ -24,17 +36,12 @@ module AudioStream
       self
     end
 
-    def stream
-      @stream ||= Rx::Observable.create do |observer|
-        each {|buf|
-          sync.resume_wait
-          observer.on_next(buf)
-          sync.yield
-        }
-        sync.resume_wait
-        sync.finish
-        observer.on_completed
-      end.publish
+    def connected?
+      nil
+    end
+
+    def published?
+      !!@connection
     end
 
 

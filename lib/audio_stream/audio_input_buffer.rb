@@ -6,6 +6,18 @@ module AudioStream
       @buffers = [buffers].flatten.compact
     end
 
+    def connect
+      self
+    end
+
+    def disconnect
+      self
+    end
+
+    def connected?
+      true
+    end
+
     def each(&block)
       Enumerator.new do |y|
         @buffers.each {|buf|

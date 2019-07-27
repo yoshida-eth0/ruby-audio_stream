@@ -1,28 +1,68 @@
 module AudioStream
-  class AudioBus < Rx::Subject
+  class AudioBus
+    include AudioObserver
+    include AudioObservable
+
     def initialize
-      super
-      @observables = []
-      @zip_observable = nil
-      @detach = nil
+      @mutex = Mutex.new
+      @callers = Set[]
+      @notifications = {}
     end
 
     def add(observable, gain:, pan:)
       if gain && gain!=1.0
-        observable = observable.map(&Fx::AGain.new(level: gain).method(:process))
+        observable = observable.fx(Fx::AGain.new(level: gain))
       end
 
       if pan && pan!=0.0
-        observable = observable.map(&Fx::Panning.new(pan: pan).method(:process))
+        observable = observable.fx(Fx::Panning.new(pan: pan))
       end
 
-      @observables << observable
-      if @detach
-        @detach.unsubscribe
-      end
+      @mutex.synchronize {
+        @callers << observable
+        observable.add_observer(self)
+      }
+    end
 
-      @zip_observable = Rx::Observable.zip(*@observables).map{|a| a.inject(:+)}
-      @detach = @zip_observable.subscribe(self)
+    def update(notification)
+      do_notify = false
+      next_notifications = nil
+
+      @mutex.synchronize {
+        @notifications[notification.caller_obj] = notification
+
+        if @callers.length==@notifications.length
+          next_notifications = []
+          @notifications.each {|caller_obj, notification|
+            case notification.stat
+            when AudioNotification::STAT_NEXT
+              next_notifications << notification
+            when AudioNotification::STAT_COMPLETE
+              @callers.delete(caller_obj)
+            end
+          }
+
+          do_notify = true
+          @notifications.clear
+        end
+      }
+
+      if do_notify
+        if 0<next_notifications.length
+          output = next_notifications.map(&:input).inject(:+)
+          on_next(output)
+        else
+          on_complete
+        end
+      end
+    end
+
+    def on_next(input)
+      notify_next(input)
+    end
+
+    def on_complete
+      notify_complete
     end
   end
 end

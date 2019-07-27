@@ -10,25 +10,35 @@ module AudioStream
     end
 
     def connect
-      @sound = RubyAudio::Sound.open(@path)
-      super
+      if !connected?
+        @sound = RubyAudio::Sound.open(@path)
+      end
+      self
     end
 
     def disconnect
-      if @sound && !@sound.closed?
+      if connected?
         @sound.close
       end
       super
     end
 
+    def connected?
+      @sound && !@sound.closed?
+    end
+
     def seek(frames, whence=IO::SEEK_SET)
+      if !connected?
+        raise Error, "File is not opened. You need to exec #{self.class.name}.connect: #{@path}"
+      end
+
       @sound.seek(frames, whence)
       self
     end
 
     def each(&block)
       Enumerator.new do |y|
-        if !@sound || @sound.closed?
+        if !connected?
           raise Error, "File is not opened. You need to exec #{self.class.name}.connect: #{@path}"
         end
 

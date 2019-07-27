@@ -8,18 +8,20 @@ module AudioStream
     def connect
       @outputs.map(&:connect)
       @inputs.map(&:connect)
+      @inputs.map(&:publish)
 
       @sync_thread = Thread.start {
         catch :break do
           loop {
-            @inputs.each {|t|
-              t.sync.resume
+            @inputs.each {|input|
+              input.sync.resume
             }
 
-            @inputs.each {|t|
-              stat = t.sync.yield_wait
+            @inputs.each {|input|
+              stat = input.sync.yield_wait
               if stat==Sync::COMPLETED
-                throw :break
+                @inputs.delete(input)
+                #throw :break
               end
             }
 

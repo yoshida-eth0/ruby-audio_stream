@@ -1,4 +1,4 @@
-require 'audio_stream/core_ext'
+require 'audio_stream'
 
 include AudioStream
 include AudioStream::Fx

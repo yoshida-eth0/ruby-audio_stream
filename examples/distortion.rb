@@ -23,7 +23,6 @@ stereo_out = AudioOutput.device(soundinfo: $soundinfo)
 # Mixer
 
 track1
-  .stream
   .fx(noise_gate)
   .fx(compressor)
   .fx(distortion)
