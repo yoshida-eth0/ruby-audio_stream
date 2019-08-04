@@ -107,7 +107,7 @@ module AudioStream
         {x: x, magnitude: mag_res, phase: phase_res}
       end
 
-      def plot(width=1000)
+      def plot(width=500)
         data = plot_data(width)
 
         Plotly::Plot.new(
