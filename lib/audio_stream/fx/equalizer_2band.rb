@@ -13,7 +13,7 @@ module AudioStream
         @high_filter.process!(input)
       end
 
-      def plot(width=1000)
+      def plot(width=500)
         data1 = @low_filter.plot_data(width)
         data2 = @high_filter.plot_data(width)
 
