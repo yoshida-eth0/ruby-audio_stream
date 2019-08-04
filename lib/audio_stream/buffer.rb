@@ -1,43 +1,76 @@
 module AudioStream
   class Buffer < RubyAudio::Buffer
-    def plot(soundinfo=nil)
-      Plot.new(self, soundinfo)
+    def stereo(&block)
+      case self.channels
+      when 1
+        lazy.map {|f|
+          [f, f]
+        }.each(&block)
+      when 2
+        self.each(&block)
+      end
+    end
+
+    def mono(&block)
+      case self.channels
+      when 1
+        self.each(&block)
+      when 2
+        lazy.map {|fa|
+          (fa[0] + fa[1]) / 2.0
+        }.each(&block)
+      end
     end
 
     def +(other)
-      unless RubyAudio::Buffer===other
-        raise Error, "right operand is not Buffer: #{other}"
-      end
-      if self.size!=other.size
-        raise Error, "Buffer.size is not match: self.size=#{self.size} other.size=#{other.size}"
+      self.class.merge(self, other)
+    end
+
+    def self.merge(*buffers)
+      buffers = buffers.flatten
+
+      if buffers.length==0
+        raise Error, "argument is empty"
+      elsif buffers.length==1
+        return buffers.first.clone
       end
 
-      channels = [self.channels, other.channels].max
-      window_size = self.size
+      buffers.each {|buf|
+        unless Buffer===buf
+          raise Error, "argument is not Buffer: #{buf}"
+        end
+        if buffers[0].size!=buf.size
+          i = buffers.index(buf)
+          raise Error, "Buffer.size is not match: buffers[0].size=#{buffers[0].size} buffers[#{i}].size=#{buf.size}"
+        end
+      }
 
-      buf = Buffer.float(window_size, channels)
+      channels = buffers.map(&:channels).max
+      window_size = buffers[0].size
+
+      result = Buffer.float(window_size, channels)
 
       case channels
       when 1
-        [self, other].each {|x|
-          x.size.times.each {|i|
-            buf[i] += x[i]
+        buffers.each {|buf|
+          buf.mono.each_with_index {|f, i|
+            result[i] += f
           }
         }
       when 2
-        m2s = Fx::MonoToStereo.instance
-        a = [
-          m2s.process(self),
-          m2s.process(other),
-        ]
-        a.each {|x|
-          x.size.times.each {|i|
-            buf[i] = buf[i].zip(x[i]).map {|a| a[0] + a[1]}
+        buffers.each {|buf|
+          buf.stereo.each_with_index {|fa1, i|
+            fa2 = result[i]
+            result[i] = [fa1[0] + fa2[0], fa1[1] + fa2[1]]
           }
         }
       end
 
-      buf
+      result
+    end
+
+    def plot(soundinfo=nil)
+      Plot.new(self, soundinfo)
     end
 
     def to_na

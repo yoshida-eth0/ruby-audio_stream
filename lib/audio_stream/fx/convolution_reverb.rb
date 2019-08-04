@@ -10,7 +10,7 @@ module AudioStream
         @window_size = impulse_bufs[0].size
         @dry_gain = dry
         @wet_gain = wet
-        @window = window || HanningWindow.new
+        @window = window || HanningWindow.instance
 
         zero_buf = Buffer.float(@window_size, @channels)
         if @channels==1

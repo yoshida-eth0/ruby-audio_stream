@@ -49,7 +49,8 @@ module AudioStream
 
       if do_notify
         if 0<next_notifications.length
-          output = next_notifications.map(&:input).inject(:+)
+          inputs = next_notifications.map(&:input)
+          output = Buffer.merge(inputs)
           on_next(output)
         else
           on_complete
