@@ -12,7 +12,7 @@ module AudioStream
         a2 = 1.0 - alpha / a
         b0 = 1.0 + alpha * a
         b1 = -2.0 * Math.cos(omega)
-        b2 = 1.0 + alpha * a
+        b2 = 1.0 - alpha * a
 
         @filter_coef = FilterCoef.new(a0, a1, a2, b0, b1, b2)
       end

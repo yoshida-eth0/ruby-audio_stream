@@ -10,7 +10,7 @@ module AudioStream
     end
 
     def mag
-      @mag || 10 ** (@db / 20)
+      @mag || 10 ** (@db / 20.0)
     end
 
     def self.db(db)

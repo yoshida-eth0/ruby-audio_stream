@@ -70,7 +70,7 @@ module AudioStream
         out0
       end
 
-      def plot(width=1000)
+      def plot_data(width=1000)
         c = @filter_coef
 
         b0 = c.b0 / c.a0
@@ -104,13 +104,20 @@ module AudioStream
           phase_res << 180 / Math::PI * Math.atan2(res.imag, res.real)
         }
 
+        {x: x, magnitude: mag_res, phase: phase_res}
+      end
+
+      def plot(width=1000)
+        data = plot_data(width)
+
         Plotly::Plot.new(
-          data: [{x: x, y: mag_res, name: 'Magnitude', yaxis: 'y1'}, {x: x, y: phase_res, name: 'Phase', yaxis: 'y2'}],
+          data: [{x: data[:x], y: data[:magnitude], name: 'Magnitude', yaxis: 'y1'}, {x: data[:x], y: data[:phase], name: 'Phase', yaxis: 'y2'}],
           layout: {
             xaxis: {title: 'Frequency (Hz)', type: 'log'},
             yaxis: {side: 'left', title: 'Magnitude (dB)', showgrid: false},
             yaxis2: {side: 'right', title: 'Phase (deg)', showgrid: false, overlaying: 'y'}
-          })
+          }
+        )
       end
 
     end
