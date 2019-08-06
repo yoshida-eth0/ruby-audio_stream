@@ -8,8 +8,7 @@ module AudioStream
         @filters = []
       end
 
-      def add(freq:, bandwidth: nil, gain:)
-        bandwidth ||= 1.0/Math.sqrt(2.0)
+      def add(freq:, bandwidth: 1.0, gain:)
         @filters << PeakingFilter.create(@soundinfo, freq: freq, bandwidth: bandwidth, gain: gain)
         self
       end

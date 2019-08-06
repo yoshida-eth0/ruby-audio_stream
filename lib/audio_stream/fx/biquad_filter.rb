@@ -11,6 +11,8 @@ module AudioStream
 
       FilterCoef = Struct.new("FilterCoef", :a0, :a1, :a2, :b0, :b1, :b2)
 
+      DEFAULT_Q = 1.0 / Math.sqrt(2.0)
+
       def initialize(soundinfo)
         @samplerate = soundinfo.samplerate.to_f
         init_buffer

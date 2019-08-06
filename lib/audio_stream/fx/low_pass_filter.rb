@@ -16,9 +16,7 @@ module AudioStream
         @filter_coef = FilterCoef.new(a0, a1, a2, b0, b1, b2)
       end
 
-      def self.create(soundinfo, freq:, q: nil)
-        q ||= 1.0 / Math.sqrt(2)
-
+      def self.create(soundinfo, freq:, q: DEFAULT_Q)
         filter = new(soundinfo)
         filter.update_coef(freq: freq, q: q)
 

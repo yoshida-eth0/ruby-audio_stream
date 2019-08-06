@@ -8,11 +8,11 @@ track1 = $input
 
 # Fx
 
-lpf = LowPassFilter.create($soundinfo, freq: 440.0, q: nil)
-hpf = HighPassFilter.create($soundinfo, freq: 440.0, q: nil)
+lpf = LowPassFilter.create($soundinfo, freq: 440.0, q: BiquadFilter::DEFAULT_Q)
+hpf = HighPassFilter.create($soundinfo, freq: 440.0, q: BiquadFilter::DEFAULT_Q)
 bpf = BandPassFilter.create($soundinfo, freq: 440.0, bandwidth: 10.0)
-lsf = LowShelfFilter.create($soundinfo, freq: 440.0, q: nil, gain: 1.0)
-hsf = HighShelfFilter.create($soundinfo, freq: 440.0, q: nil, gain: 1.0)
+lsf = LowShelfFilter.create($soundinfo, freq: 440.0, q: BiquadFilter::DEFAULT_Q, gain: 1.0)
+hsf = HighShelfFilter.create($soundinfo, freq: 440.0, q: BiquadFilter::DEFAULT_Q, gain: 1.0)
 eq_2band = Equalizer2band.new($soundinfo, lowgain: -15.0, highgain: 15.0)
 
 

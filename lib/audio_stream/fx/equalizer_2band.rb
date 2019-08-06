@@ -4,8 +4,8 @@ module AudioStream
       include BangProcess
 
       def initialize(soundinfo, lowfreq: 400.0, lowgain:, highfreq: 4000.0, highgain:)
-        @low_filter = LowShelfFilter.create(soundinfo, freq: lowfreq, q: 1.0/Math.sqrt(2.0), gain: lowgain)
-        @high_filter = HighShelfFilter.create(soundinfo, freq: highfreq, q: 1.0/Math.sqrt(2.0), gain: highgain)
+        @low_filter = LowShelfFilter.create(soundinfo, freq: lowfreq, q: BiquadFilter::DEFAULT_Q, gain: lowgain)
+        @high_filter = HighShelfFilter.create(soundinfo, freq: highfreq, q: BiquadFilter::DEFAULT_Q, gain: highgain)
       end
 
       def process!(input)
