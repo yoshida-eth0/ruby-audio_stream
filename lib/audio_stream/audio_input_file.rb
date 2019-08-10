@@ -42,10 +42,9 @@ module AudioStream
           raise Error, "File is not opened. You need to exec #{self.class.name}.connect: #{@path}"
         end
 
-        buf = Buffer.float(@soundinfo.window_size, @soundinfo.channels)
-        while @sound.read(buf)!=0
-          buf.real_size = buf.size
-          y << buf.clone
+        rabuf = RubyAudio::Buffer.float(@soundinfo.window_size, @soundinfo.channels)
+        while @sound.read(rabuf)!=0
+          y << Buffer.from_rabuffer(rabuf)
         end
       end.each(&block)
     end

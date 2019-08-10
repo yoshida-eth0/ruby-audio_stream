@@ -18,20 +18,17 @@ module AudioStream
     end
 
     def on_next(input)
-      window_size = input.size
+      window_size = input.window_size
       channels = input.channels
 
       case @channels
       when 1
-        input = Fx::StereoToMono.instance.process(input)
+        input = input.mono
       when 2
-        input = Fx::MonoToStereo.instance.process(input)
+        input = input.stereo
       end
 
-      sint_a = input.to_a.flatten.map{|f| (f*0x7FFF).round}
-      na = NArray.sint(@channels, window_size)
-      na[0...sint_a.length] = sint_a
-      @buf << na
+      @buf << input.to_sint_na
     end
 
     def on_error(error)

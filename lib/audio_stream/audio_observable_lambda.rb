@@ -1,15 +1,15 @@
 module AudioStream
 
-  class AudioObservableFx
+  class AudioObservableLambda
     include AudioObserver
     include AudioObservable
 
-    def initialize(effector)
-      @effector = effector
+    def initialize(&block)
+      @block = block
     end
 
     def on_next(input)
-      output = @effector.process(input)
+      output = @block.call(input)
       notify_next(output)
     end
 

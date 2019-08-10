@@ -39,16 +39,9 @@ module AudioStream
           raise Error, "Device is not connected. You need to exec #{self.class.name}.connect: #{name}"
         end
 
-        channels = @dev.input_stream.channels
-        buf = Buffer.float(@soundinfo.window_size, channels)
-
         loop {
           na = @inbuf.read(@soundinfo.window_size)
-          @soundinfo.window_size.times {|i|
-            buf[i] = na[(na.dim*i)...(na.dim*(i+1))].to_a.map{|s| s / 0x7FFF.to_f}
-          }
-
-          y << buf.clone
+          y << Buffer.from_na(na)
         }
       end.each(&block)
     end

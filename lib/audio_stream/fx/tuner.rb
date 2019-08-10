@@ -19,19 +19,19 @@ module AudioStream
       end
 
       def process(input)
-        window_size = input.size
+        window_size = input.window_size
 
         # mono window
-        input = StereoToMono.instance.process(input)
-        @window.process!(input)
+        input = input.mono
+        input = @window.process(input)
+        stream = input.streams[0]
 
-        gain = input.to_a.flatten.max
+        gain = stream.map(&:abs).max
         freq = nil
 
         if 0.01<gain
           # fft
-          na = NArray.float(1, window_size)
-          na[0...na.size] = input.to_a
+          na = input.to_float_na
           fft = FFTW3.fft(na, FFTW3::FORWARD) / na.length
 
           amp = fft.map {|c|
@@ -41,12 +41,12 @@ module AudioStream
           # peak
           i = amp.index(amp.max)
 
-          if window_size/2<i
-            j = window_size - i
-            if (amp[i]-amp[j]).abs<=0.0000001
-              i = j
-            end
-          end
+          #if window_size/2<i
+          #  j = window_size - i
+          #  if (amp[i]-amp[j]).abs<=0.0000001
+          #    i = j
+          #  end
+          #end
 
           # freq
           freq_rate = @samplerate / window_size

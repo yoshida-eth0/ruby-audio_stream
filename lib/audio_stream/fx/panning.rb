@@ -1,8 +1,6 @@
 module AudioStream
   module Fx
     class Panning
-      include BangProcess
-
       def initialize(pan: 0.0)
         @pan = pan
 
@@ -23,18 +21,26 @@ module AudioStream
         @normalize = [1.0 - pan, 1.0 + pan].max
       end
 
-      def process!(input)
-        return if @pan==0.0
+      def process(input)
+        return input if @pan==0.0
 
-        case input.channels
-        when 1
-        when 2
-          input.each_with_index {|fa, i|
-            l = (fa[0] * @l_gain + fa[1] * @lr_gain) / @normalize
-            r = (fa[1] * @r_gain + fa[0] * @rl_gain) / @normalize
-            input[i] = [l, r]
-          }
-        end
+        input = input.stereo
+        src = input.streams
+        src0 = src[0]
+        src1 = src[1]
+
+        output = Buffer.create_stereo(input.window_size)
+        dst = output.streams
+        dst0 = dst[0]
+        dst1 = dst[1]
+
+        input.window_size.times {|i|
+          l = (src0[i] * @l_gain + src1[i] * @lr_gain) / @normalize
+          r = (src1[i] * @r_gain + src0[i] * @rl_gain) / @normalize
+          dst0[i] = l
+          dst1[i] = r
+        }
+        output
       end
     end
   end

@@ -2,28 +2,21 @@ module AudioStream
   module Fx
     class HanningWindow
       include Singleton
-      include BangProcess
 
-      def process!(input)
-        window_size = input.size
-        window_max = input.size - 1
+      def process(input)
+        window_size = input.window_size
+        window_max = input.window_size - 1
         channels = input.channels
 
         period = 2 * Math::PI / window_max
 
-        case channels
-        when 1
-          input.each_with_index {|f, i|
-            input[i] *= 0.5 - 0.5 * Math.cos(i * period)
+        streams = input.streams.map {|stream|
+          stream.map.with_index {|f, i|
+            f * (0.5 - 0.5 * Math.cos(i * period))
           }
-        when 2
-          input.each_with_index {|fa, i|
-            gain = 0.5 - 0.5 * Math.cos(i * period)
-            input[i] = fa.map {|f| f * gain}
-          }
-        end
+        }
 
-        input
+        Buffer.new(*streams)
       end
     end
   end

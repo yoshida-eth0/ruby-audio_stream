@@ -1,18 +1,16 @@
 module AudioStream
   module Fx
     class Equalizer3band
-      include BangProcess
-
       def initialize(soundinfo, lowfreq: 400.0, lowgain:, midfreq: 1000.0, midgain:, highfreq: 4000.0, highgain:)
         @low_filter = LowShelfFilter.create(soundinfo, freq: lowfreq, q: BiquadFilter::DEFAULT_Q, gain: lowgain)
         @mid_filter = PeakingFilter.create(soundinfo, freq: midfreq, bandwidth: 1.0, gain: midgain)
         @high_filter = HighShelfFilter.create(soundinfo, freq: highfreq, q: BiquadFilter::DEFAULT_Q, gain: highgain)
       end
 
-      def process!(input)
-        @low_filter.process!(input)
-        @mid_filter.process!(input)
-        @high_filter.process!(input)
+      def process(input)
+        input = @low_filter.process(input)
+        input = @mid_filter.process(input)
+        input = @high_filter.process(input)
       end
 
       def plot(width=500)

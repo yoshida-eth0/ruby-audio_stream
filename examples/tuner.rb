@@ -7,14 +7,14 @@ include AudioStream::Fx
 soundinfo = SoundInfo.new(
   channels: 2,
   samplerate: 44100,
-  window_size: 1024,
+  window_size: 1024*2*2*2,
   format: RubyAudio::FORMAT_WAV|RubyAudio::FORMAT_PCM_16
 )
 
 # Track
 
 #track1 = AudioInput.sin(454.0, 100, 2048, soundinfo: soundinfo)
-track1 = AudioInput.device(1024*2*2*2)
+track1 = AudioInput.device(soundinfo: soundinfo)
 
 
 # Audio FX
@@ -30,7 +30,7 @@ stereo_out = AudioOutput.device(soundinfo: soundinfo)
 # Mixer
 
 track1
-  .stream
+  .mono
   .fx(tuner)
   .subscribe_on_next {|tone|
     width = 30

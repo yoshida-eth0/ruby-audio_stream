@@ -8,7 +8,6 @@ track1 = $input
 
 # Fx
 
-noise_gate = Compressor.new(threshold: 0.1, ratio: 10.0)
 compressor = Compressor.new(threshold: 0.3, ratio: 0.5)
 chorus = Chorus.new($soundinfo, depth: 100, rate: 0.25)
 
@@ -22,7 +21,7 @@ stereo_out = AudioOutput.device(soundinfo: $soundinfo)
 # Mixer
 
 track1
-  .fx(MonoToStereo.instance)
+  .stereo
   .fx(chorus)
   .send_to(bus1, gain: 1.0, pan: 0.0)
 

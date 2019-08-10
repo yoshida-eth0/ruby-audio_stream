@@ -12,7 +12,7 @@ $soundinfo = SoundInfo.new(
   format: RubyAudio::FORMAT_WAV|RubyAudio::FORMAT_PCM_16
 )
 
-$input_stream = nil
+$input = nil
 
 op = OptionParser.new do |opt|
   opt.on('-f path', 'input file path') {|v|

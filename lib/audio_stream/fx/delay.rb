@@ -1,8 +1,6 @@
 module AudioStream
   module Fx
     class Delay
-      include BangProcess
-
       def initialize(soundinfo, time:, level:, feedback:)
         @time = time
         @level = level
@@ -14,30 +12,43 @@ module AudioStream
         @seek = 0
       end
 
-      def process!(input)
-        window_size = input.size
+      def process(input)
+        window_size = input.window_size
         channels = input.channels
+
+        src0 = input.streams[0]
+        src1 = input.streams[1]
 
         case channels
         when 1
-          input.each_with_index {|f, i|
-            tmp0 = input[i] + @level * @delaybuf0[@seek]
-            @delaybuf0[@seek] = input[i] + @feedback * @delaybuf0[@seek]
-            input[i] = tmp0
+          output = Buffer.create_mono(window_size)
+          dst0 = output.streams[0]
+
+          src0.each_with_index {|f, i|
+            tmp0 = f + @level * @delaybuf0[@seek]
+            @delaybuf0[@seek] = f + @feedback * @delaybuf0[@seek]
+            dst0[i] = tmp0
             @seek = (@seek + 1) % @delaysample
           }
+          output
         when 2
-          input.each_with_index {|fa, i|
-            tmp0 = input[i][0] + @level * @delaybuf0[@seek]
-            tmp1 = input[i][1] + @level * @delaybuf1[@seek]
+          output = Buffer.create_stereo(window_size)
+          dst0 = output.streams[0]
+          dst1 = output.streams[1]
 
-            @delaybuf0[@seek] = input[i][0] + @feedback * @delaybuf0[@seek]
-            @delaybuf1[@seek] = input[i][1] + @feedback * @delaybuf1[@seek]
+          window_size.times {|i|
+            tmp0 = src0[i] + @level * @delaybuf0[@seek]
+            tmp1 = src1[i] + @level * @delaybuf1[@seek]
 
-            input[i] = [tmp0, tmp1]
+            @delaybuf0[@seek] = src0[i] + @feedback * @delaybuf0[@seek]
+            @delaybuf1[@seek] = src1[i] + @feedback * @delaybuf1[@seek]
+
+            dst0[i] = tmp0
+            dst1[i] = tmp1
 
             @seek = (@seek + 1) % @delaysample
           }
+          output
         end
       end
     end

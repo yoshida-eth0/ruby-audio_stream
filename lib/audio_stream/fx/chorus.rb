@@ -1,54 +1,46 @@
 module AudioStream
   module Fx
     class Chorus
-      include BangProcess
-
       def initialize(soundinfo, depth: 100, rate: 0.25)
         @soundinfo = soundinfo
 
         @depth = depth
         @rate = rate
 
-        @delaybuf0 = RingBuffer.new(@depth * 3, 0.0)
-        @delaybuf1 = RingBuffer.new(@depth * 3, 0.0)
+        @delaybufs = [
+          RingBuffer.new(@depth * 3, 0.0),
+          RingBuffer.new(@depth * 3, 0.0)
+        ]
 
         @phase = 0
         @speed = (2.0 * Math::PI * @rate) / @soundinfo.samplerate
       end
 
-      def process!(input)
-        window_size = input.size
+      def process(input)
+        window_size = input.window_size
         channels = input.channels
 
-        window_size.times {|i|
-          tau = @depth * (Math.sin(@speed * (@phase + i)) + 1)
-          t = i - tau
+        streams = channels.times.map {|ch|
+          delaybuf = @delaybufs[ch]
+          input.streams[ch].map.with_index {|f, i|
+            tau = @depth * (Math.sin(@speed * (@phase + i)) + 1)
+            t = i - tau
 
-          m = t.floor
-          delta = t - m
+            m = t.floor
+            delta = t - m
 
-          case channels
-          when 1
-            wet = delta * @delaybuf0[i-m+1] + (1.0 - delta) * @delaybuf0[i-m]
-            input[i] = (input[i] + wet) * 0.5
-          when 2
-            wet0 = delta * @delaybuf0[i-m+1] + (1.0 - delta) * @delaybuf0[i-m]
-            wet1 = delta * @delaybuf1[i-m+1] + (1.0 - delta) * @delaybuf1[i-m]
-            input[i] = [(input[i][0] + wet0) * 0.5, (input[i][1] + wet1) * 0.5]
-          end
+            wet = delta * delaybuf[i-m+1] + (1.0 - delta) * delaybuf[i-m]
+            f = (f + wet) * 0.5
 
-          case channels
-          when 1
-            @delaybuf0.current = input[i]
-            @delaybuf0.rotate
-          when 2
-            @delaybuf0.current = input[i][0]
-            @delaybuf1.current = input[i][1]
-            @delaybuf0.rotate
-            @delaybuf1.rotate
-          end
+            delaybuf.current = f
+            delaybuf.rotate
+
+            f
+          }
         }
         @phase = (@phase + window_size) % (window_size / @speed)
+
+        Buffer.new(*streams)
       end
 
       def lerp(start, stop, step)

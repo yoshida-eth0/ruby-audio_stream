@@ -1,8 +1,6 @@
 module AudioStream
   module Fx
     class GraphicEqualizer
-      include BangProcess
-
       def initialize(soundinfo)
         @soundinfo = soundinfo
         @filters = []
@@ -13,10 +11,11 @@ module AudioStream
         self
       end
 
-      def process!(input)
+      def process(input)
         @filters.each {|filter|
-          filter.process!(input)
+          input = filter.process(input)
         }
+        input
       end
 
       def plot(width=500)

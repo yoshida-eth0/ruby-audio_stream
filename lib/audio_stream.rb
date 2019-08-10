@@ -13,8 +13,10 @@ require 'audio_stream/ring_buffer'
 require 'audio_stream/sync'
 require 'audio_stream/conductor'
 require 'audio_stream/audio_observer'
+require 'audio_stream/audio_observer_lambda'
 require 'audio_stream/audio_observable'
 require 'audio_stream/audio_observable_fx'
+require 'audio_stream/audio_observable_lambda'
 require 'audio_stream/audio_notification'
 require 'audio_stream/audio_input'
 require 'audio_stream/audio_input_file'
@@ -25,7 +27,6 @@ require 'audio_stream/audio_output'
 require 'audio_stream/audio_output_file'
 require 'audio_stream/audio_output_device'
 require 'audio_stream/fx'
-require 'audio_stream/plot'
 
 module AudioStream
   include NumRu

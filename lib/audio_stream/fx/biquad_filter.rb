@@ -1,8 +1,6 @@
 module AudioStream
   module Fx
     class BiquadFilter
-      include BangProcess
-
       FilterBuffer = Struct.new("FilterBuffer", :in1, :in2, :out1, :out2) do
         def self.create
           new(0.0, 0.0, 0.0, 0.0)
@@ -23,40 +21,30 @@ module AudioStream
       end
 
       def update_coef(*args, **kwargs)
-        raise Error, "#{self.class.name}.filter_coef is not implemented"
+        raise Error, "#{self.class.name}.update_coef is not implemented"
       end
 
-      def process!(input)
-        window_size = input.size
+      def process(input)
+        window_size = input.window_size
         channels = input.channels
 
-        case channels
-        when 1
-          b = @filter_bufs[0]
-          window_size.times {|i|
-            input[i] = process_one(input[i], b)
+        streams = input.streams.map.with_index {|stream, i|
+          b = @filter_bufs[i]
+          stream.map {|f|
+            process_one(f, b)
           }
-        when 2
-          window_size.times {|i|
-            input_i = input[i]
-            input[i] = [
-              process_one(input_i[0], @filter_bufs[0]),
-              process_one(input_i[1], @filter_bufs[1]),
-            ]
-          }
-        end
-
-        input
+        }
+        Buffer.new(*streams)
       end
 
       def process_mono(in0)
         process_one(in0, @filter_bufs[0])
       end
 
-      def process_stereo(inp)
+      def process_stereo(in0, in1)
         [
-          process_one(inp[0], @filter_bufs[0]),
-          process_one(inp[1], @filter_bufs[1])
+          process_one(in0, @filter_bufs[0]),
+          process_one(in1, @filter_bufs[1])
         ]
       end
 
@@ -72,7 +60,7 @@ module AudioStream
         out0
       end
 
-      def plot_data(width=1000)
+      def plot_data(width=500)
         c = @filter_coef
 
         b0 = c.b0 / c.a0
