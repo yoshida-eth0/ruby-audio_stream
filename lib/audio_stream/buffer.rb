@@ -58,12 +58,10 @@ module AudioStream
     end
 
     def +(other)
-      self.class.merge(self, other)
+      self.class.merge([self, other])
     end
 
-    def self.merge(*buffers)
-      buffers = buffers.flatten
-
+    def self.merge(buffers, average: false)
       if buffers.length==0
         raise Error, "argument is empty"
       elsif buffers.length==1
@@ -82,13 +80,14 @@ module AudioStream
 
       channels = buffers.map(&:channels).max
       window_size = buffers[0].window_size
+      avg = average ? buffers.size.to_f : 1.0
 
       case channels
       when 1
         result0 = Array.new(window_size, 0.0)
         buffers.each {|buf|
           buf.streams[0].each_with_index {|f, i|
-            result0[i] += f
+            result0[i] += f / avg
           }
         }
         self.class.new(result0)
@@ -100,8 +99,8 @@ module AudioStream
           src0 = buf.streams[0]
           src1 = buf.streams[1]
           window_size.times {|i|
-            result0[i] += src0[i]
-            result1[i] += src1[i]
+            result0[i] += src0[i] / avg
+            result1[i] += src1[i] / avg
           }
         }
         self.new(result0, result1)
@@ -169,6 +168,23 @@ module AudioStream
       end
 
       na
+    end
+
+    def to_rabuffer
+      rabuf = RubyAudio::Buffer.float(window_size, channels)
+
+      case channels
+      when 1
+        window_size.times {|i|
+          rabuf[i] = @stream0[i]
+        }
+      when 2
+        window_size.times {|i|
+          rabuf[i] = [@stream0[i], @stream0[i]]
+        }
+      end
+
+      rabuf
     end
 
     def self.create(window_size, channels)

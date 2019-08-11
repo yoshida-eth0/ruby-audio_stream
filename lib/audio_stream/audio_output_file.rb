@@ -17,7 +17,7 @@ module AudioStream
     end
 
     def on_next(input)
-      @sound.write(input)
+      @sound.write(input.to_rabuffer)
     end
 
     def on_error(error)
