@@ -6,6 +6,13 @@ module AudioStream
     attr_reader :window_size
 
     def initialize(stream0, stream1=nil)
+      if Array===stream0
+        stream0 = Vdsp::DoubleArray.create(stream0)
+      end
+      if Array===stream1
+        stream1 = Vdsp::DoubleArray.create(stream1)
+      end
+
       @stream0 = stream0
       @stream1 = stream1
 
@@ -58,53 +65,45 @@ module AudioStream
     end
 
     def +(other)
-      self.class.merge([self, other])
+      if self.window_size!=other.window_size
+        raise Error, "Buffer.window_size is not match: self.window_size=#{self.window_size} other.window_size=#{other.window_size}"
+      end
+
+      channels = [self.channels, other.channels].max
+      case channels
+      when 1
+        stream0 = self.streams[0] + other.streams[0]
+        self.class.new(stream0)
+      when 2
+        st_self = self.stereo
+        st_other = other.stereo
+
+        stream0 = st_self.streams[0] + st_other.streams[0]
+        stream1 = st_self.streams[1] + st_other.streams[1]
+        self.class.new(stream0, stream1)
+      end
     end
 
     def self.merge(buffers, average: false)
-      if buffers.length==0
-        raise Error, "argument is empty"
-      elsif buffers.length==1
-        return buffers.first.clone
-      end
-
       buffers.each {|buf|
         unless Buffer===buf
           raise Error, "argument is not Buffer: #{buf}"
         end
-        if buffers[0].window_size!=buf.window_size
-          i = buffers.index(buf)
-          raise Error, "Buffer.window_size is not match: buffers[0].window_size=#{buffers[0].window_size} buffers[#{i}].window_size=#{buf.window_size}"
-        end
       }
 
-      channels = buffers.map(&:channels).max
-      window_size = buffers[0].window_size
-      avg = average ? buffers.size.to_f : 1.0
-
-      case channels
-      when 1
-        result0 = Array.new(window_size, 0.0)
-        buffers.each {|buf|
-          buf.streams[0].each_with_index {|f, i|
-            result0[i] += f / avg
-          }
-        }
-        self.class.new(result0)
-      when 2
-        result0 = Array.new(window_size, 0.0)
-        result1 = Array.new(window_size, 0.0)
-        buffers.each {|buf|
-          buf = buf.stereo
-          src0 = buf.streams[0]
-          src1 = buf.streams[1]
-          window_size.times {|i|
-            result0[i] += src0[i] / avg
-            result1[i] += src1[i] / avg
-          }
-        }
-        self.new(result0, result1)
+      if buffers.length==0
+        raise Error, "argument is empty"
+      elsif buffers.length==1
+        return buffers[0]
       end
+
+      dst = buffers.inject(:+)
+
+      if average
+        dst /= buffers.length.to_f
+      end
+
+      dst
     end
 
     def plot
@@ -147,10 +146,10 @@ module AudioStream
 
       case channels
       when 1
-        na[(0+offset)...(window_size+offset)] = @stream0
+        na[(0+offset)...(window_size+offset)] = @stream0.to_a
       when 2
-        na[window_size.times.map{|i| i*2+offset}] = @stream0
-        na[window_size.times.map{|i| i*2+1+offset}] = @stream1
+        na[window_size.times.map{|i| i*2+offset}] = @stream0.to_a
+        na[window_size.times.map{|i| i*2+1+offset}] = @stream1.to_a
       end
 
       na
@@ -175,12 +174,14 @@ module AudioStream
 
       case channels
       when 1
-        window_size.times {|i|
-          rabuf[i] = @stream0[i]
+        @stream0.each {|v|
+          rabuf[i] = v
         }
       when 2
+        stream0 = @stream0.to_a
+        stream1 = @stream1.to_a
         window_size.times {|i|
-          rabuf[i] = [@stream0[i], @stream0[i]]
+          rabuf[i] = [stream0[i], stream1[i]]
         }
       end
 
@@ -197,13 +198,13 @@ module AudioStream
     end
 
     def self.create_mono(window_size)
-      stream0 = Array.new(window_size, 0.0)
+      stream0 = Vdsp::DoubleArray.new(window_size)
       new(stream0)
     end
 
     def self.create_stereo(window_size)
-      stream0 = Array.new(window_size, 0.0)
-      stream1 = Array.new(window_size, 0.0)
+      stream0 = Vdsp::DoubleArray.new(window_size)
+      stream1 = Vdsp::DoubleArray.new(window_size)
       new(stream0, stream1)
     end
 
@@ -220,17 +221,17 @@ module AudioStream
 
       case channels
       when 1
-        stream0 = Array.new(window_size, 0.0)
+        stream0 = []
         window_size.times {|i|
-          stream0[i] = na[i].real / max
+          stream0 << na[i].real / max
         }
         self.new(stream0)
       when 2
-        stream0 = Array.new(window_size, 0.0)
-        stream1 = Array.new(window_size, 0.0)
+        stream0 = []
+        stream1 = []
         window_size.times {|i|
-          stream0[i] = na[i*2].real / max
-          stream1[i] = na[(i*2)+1].real / max
+          stream0 << na[i*2].real / max
+          stream1 << na[(i*2)+1].real / max
         }
         self.new(stream0, stream1)
       end
@@ -242,17 +243,14 @@ module AudioStream
 
       case channels
       when 1
-        stream0 = Array.new(window_size, 0.0)
-        rabuf.each_with_index {|f, i|
-          stream0[i] = f
-        }
+        stream0 = rabuf.to_a
         self.new(stream0)
       when 2
-        stream0 = Array.new(window_size, 0.0)
-        stream1 = Array.new(window_size, 0.0)
+        stream0 = []
+        stream1 = []
         rabuf.each_with_index {|fa, i|
-          stream0[i] = fa[0]
-          stream1[i] = fa[1]
+          stream0 << fa[0]
+          stream1 << fa[1]
         }
         self.new(stream0, stream1)
       end

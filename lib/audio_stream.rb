@@ -1,5 +1,6 @@
 require 'ruby-audio'
 require 'coreaudio'
+require 'vdsp'
 require 'numru/fftw3'
 require 'rbplotly'
 require 'singleton'

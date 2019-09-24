@@ -9,9 +9,7 @@ module AudioStream
         return input if @level==1.0
 
         streams = input.streams.map {|stream|
-          stream.map {|f|
-            f * @level
-          }
+          stream * @level
         }
         Buffer.new(*streams)
       end

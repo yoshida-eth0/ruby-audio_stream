@@ -4,43 +4,42 @@ module AudioStream
       def initialize(pan: 0.0)
         @pan = pan
 
-        @l_gain = 1.0 - pan
-        @lr_gain = 0.0
-        if 1.0<@l_gain
-          @lr_gain = @l_gain - 1.0
-          @l_gain = 1.0
+        l_gain = 1.0 - pan
+        lr_gain = 0.0
+        if 1.0<l_gain
+          lr_gain = l_gain - 1.0
+          l_gain = 1.0
         end
 
-        @r_gain = 1.0 + pan
-        @rl_gain = 0.0
-        if 1.0<@r_gain
-          @rl_gain = @r_gain - 1.0
-          @r_gain = 1.0
+        r_gain = 1.0 + pan
+        rl_gain = 0.0
+        if 1.0<r_gain
+          rl_gain = r_gain - 1.0
+          r_gain = 1.0
         end
 
-        @normalize = [1.0 - pan, 1.0 + pan].max
+        normalize = [1.0 - pan, 1.0 + pan].max
+
+        @r_gain = r_gain / normalize
+        @rl_gain = rl_gain / normalize
+        @l_gain = l_gain / normalize
+        @lr_gain = lr_gain / normalize
       end
 
       def process(input)
         return input if @pan==0.0
 
-        input = input.stereo
-        src = input.streams
+        src = input.stereo.streams
         src0 = src[0]
         src1 = src[1]
 
-        output = Buffer.create_stereo(input.window_size)
-        dst = output.streams
-        dst0 = dst[0]
-        dst1 = dst[1]
+        dst0 = Vdsp::DoubleArray.new(src0.length)
+        Vdsp::UnsafeDouble.vsmsma(src0, 0, 1, @l_gain, src1, 0, 1, @lr_gain, dst0, 0, 1, src0.length)
 
-        input.window_size.times {|i|
-          l = (src0[i] * @l_gain + src1[i] * @lr_gain) / @normalize
-          r = (src1[i] * @r_gain + src0[i] * @rl_gain) / @normalize
-          dst0[i] = l
-          dst1[i] = r
-        }
-        output
+        dst1 = Vdsp::DoubleArray.new(src1.length)
+        Vdsp::UnsafeDouble.vsmsma(src0, 0, 1, @rl_gain, src1, 0, 1, @r_gain, dst1, 0, 1, src1.length)
+
+        Buffer.new(dst0, dst1)
       end
     end
   end
