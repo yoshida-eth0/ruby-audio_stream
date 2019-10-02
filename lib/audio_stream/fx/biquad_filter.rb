@@ -1,23 +1,10 @@
 module AudioStream
   module Fx
     class BiquadFilter
-      FilterBuffer = Struct.new("FilterBuffer", :in1, :in2, :out1, :out2) do
-        def self.create
-          new(0.0, 0.0, 0.0, 0.0)
-        end
-      end
-
-      FilterCoef = Struct.new("FilterCoef", :a0, :a1, :a2, :b0, :b1, :b2)
-
       DEFAULT_Q = 1.0 / Math.sqrt(2.0)
 
       def initialize(soundinfo)
         @samplerate = soundinfo.samplerate.to_f
-        init_buffer
-      end
-
-      def init_buffer
-        @filter_bufs = [FilterBuffer.create, FilterBuffer.create]
       end
 
       def update_coef(*args, **kwargs)
@@ -25,49 +12,25 @@ module AudioStream
       end
 
       def process(input)
-        window_size = input.window_size
         channels = input.channels
 
-        streams = input.streams.map.with_index {|stream, i|
-          b = @filter_bufs[i]
-          stream.map {|f|
-            process_one(f, b)
-          }
-        }
-        Buffer.new(*streams)
-      end
-
-      def process_mono(in0)
-        process_one(in0, @filter_bufs[0])
-      end
-
-      def process_stereo(in0, in1)
-        [
-          process_one(in0, @filter_bufs[0]),
-          process_one(in1, @filter_bufs[1])
-        ]
-      end
-
-      def process_one(in0, b)
-        c = @filter_coef
-        out0 = c.b0/c.a0 * in0 + c.b1/c.a0 * b.in1 + c.b2/c.a0 * b.in2 - c.a1/c.a0 * b.out1 - c.a2/c.a0 * b.out2
-
-        b.in2 = b.in1
-        b.in1 = in0
-        b.out2 = b.out1
-        b.out1 = out0
-
-        out0
+        case channels
+        when 1
+          dst0 = @biquads[0].apply(input.streams[0])
+          Buffer.new(dst0)
+        when 2
+          dst0 = @biquads[0].apply(input.streams[0])
+          dst1 = @biquads[1].apply(input.streams[1])
+          Buffer.new(dst0, dst1)
+        end
       end
 
       def plot_data(width=500)
-        c = @filter_coef
-
-        b0 = c.b0 / c.a0
-        b1 = c.b1 / c.a0
-        b2 = c.b2 / c.a0
-        a1 = c.a1 / c.a0
-        a2 = c.a2 / c.a0
+        b0 = @coef.b0
+        b1 = @coef.b1
+        b2 = @coef.b2
+        a1 = @coef.a1
+        a2 = @coef.a2
 
         noctaves = 10
         nyquist = @samplerate * 0.5
