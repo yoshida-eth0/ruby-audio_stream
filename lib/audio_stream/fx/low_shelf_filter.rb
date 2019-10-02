@@ -16,10 +16,9 @@ module AudioStream
         b2 = a * ((a+1) - (a-1) * Math.cos(omega) - beta * Math.sin(omega))
 
         @coef = Vdsp::Biquad::Coefficient.new(b0/a0, b1/a0, b2/a0, a1/a0, a2/a0)
-        @biquads = [
-          Vdsp::DoubleBiquad.new(@coef),
-          Vdsp::DoubleBiquad.new(@coef),
-        ]
+        @biquads.each {|biquad|
+          biquad.coefficients = @coef
+        }
       end
 
       def self.create(soundinfo, freq:, q: DEFAULT_Q, gain: 1.0)

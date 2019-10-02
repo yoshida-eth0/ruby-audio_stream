@@ -5,6 +5,10 @@ module AudioStream
 
       def initialize(soundinfo)
         @samplerate = soundinfo.samplerate.to_f
+        @biquads = [
+          Vdsp::DoubleBiquad.new(1),
+          Vdsp::DoubleBiquad.new(1),
+        ]
       end
 
       def update_coef(*args, **kwargs)
