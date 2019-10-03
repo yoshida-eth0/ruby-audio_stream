@@ -244,13 +244,16 @@ module AudioStream
       case channels
       when 1
         stream0 = rabuf.to_a
+        while stream0.size<window_size
+          stream0 << 0.0
+        end
         self.new(stream0)
       when 2
-        stream0 = []
-        stream1 = []
+        stream0 = Array.new(window_size, 0.0)
+        stream1 = Array.new(window_size, 0.0)
         rabuf.each_with_index {|fa, i|
-          stream0 << fa[0]
-          stream1 << fa[1]
+          stream0[i] = fa[0]
+          stream1[i] = fa[1]
         }
         self.new(stream0, stream1)
       end
