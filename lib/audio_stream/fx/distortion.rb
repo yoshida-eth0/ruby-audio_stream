@@ -8,15 +8,9 @@ module AudioStream
 
       def process(input)
         streams = input.streams.map {|stream|
-          stream.map {|f|
-            val = f * @gain
-            if 1.0 < val
-              val = 1.0
-            elsif val < -1.0
-              val = -1.0
-            end
-            val * @level
-          }
+          dst = Vdsp::DoubleArray.new(input.window_size)
+          Vdsp::UnsafeDouble.vclip(stream * @gain, 0, 1, -1.0, 1.0, dst, 0, 1, input.window_size)
+          dst * @level
         }
         Buffer.new(*streams)
       end

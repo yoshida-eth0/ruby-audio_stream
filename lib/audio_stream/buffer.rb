@@ -100,7 +100,8 @@ module AudioStream
       dst = buffers.inject(:+)
 
       if average
-        dst /= buffers.length.to_f
+        gain = AGain.new(level: 1.0/buffers.length)
+        dst = gain.process(dst)
       end
 
       dst
@@ -174,7 +175,7 @@ module AudioStream
 
       case channels
       when 1
-        @stream0.each {|v|
+        @stream0.each_with_index {|v, i|
           rabuf[i] = v
         }
       when 2

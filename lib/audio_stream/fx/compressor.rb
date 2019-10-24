@@ -9,14 +9,19 @@ module AudioStream
 
       def process(input)
         streams = input.streams.map {|stream|
-          stream.map {|f|
-            sign = f.negative? ? -1 : 1
-            f = f.abs
-            if @threshold<f
-              f = (f - @threshold) * @ratio + @threshold
-            end
-            @zoom * f * sign
-          }
+          sign = Vdsp::DoubleArray.new(input.window_size)
+          Vdsp::UnsafeDouble.vlim(stream, 0, 1, 0.0, @zoom, sign, 0, 1, input.window_size)
+
+          abs = stream.abs
+
+          under = Vdsp::DoubleArray.new(input.window_size)
+          Vdsp::UnsafeDouble.vclip(abs, 0, 1, 0.0, @threshold, under, 0, 1, input.window_size)
+
+          over = Vdsp::DoubleArray.new(input.window_size)
+          Vdsp::UnsafeDouble.vthr(abs, 0, 1, @threshold, over, 0, 1, input.window_size)
+          over = (over - @threshold) * @ratio
+
+          (under + over) * sign
         }
         Buffer.new(*streams)
       end

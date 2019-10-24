@@ -17,6 +17,12 @@ module AudioStream
     end
 
     def on_next(input)
+      case @soundinfo.channels
+      when 1
+        input = input.mono
+      when 2
+        input = input.stereo
+      end
       @sound.write(input.to_rabuffer)
     end
 
