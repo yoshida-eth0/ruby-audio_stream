@@ -2,7 +2,7 @@ module AudioStream
   module Fx
     class SchroederReverb
 
-      def initialize(soundinfo, time:, dry: 1.0, wet: 1.0)
+      def initialize(soundinfo, time:, dry: 1.0, wet: 0.7)
         @window_size = soundinfo.window_size
         @combs = [
           CombFilter.new(soundinfo, freq: ms2freq(39.85 / 2.0 * time), q: 0.871402),
@@ -14,6 +14,9 @@ module AudioStream
           AllPassFilter.create(soundinfo, freq: ms2freq(5.0), q: 0.7),
           AllPassFilter.create(soundinfo, freq: ms2freq(1.7), q: 0.7),
         ]
+
+        @dry = dry.to_f
+        @wet = wet.to_f
       end
 
       def process(input)
@@ -22,16 +25,23 @@ module AudioStream
           raise "window size is not match: impulse.size=#{@window_size} input.size=#{window_size}"
         end
 
-        outputs = @combs.map {|comb|
+        wets = @combs.map {|comb|
           comb.process(input)
         }
-        output = Buffer.merge(outputs, average: true)
+        wet = Buffer.merge(wets, average: true)
 
         @allpasss.each {|allpass|
-          output = allpass.process(output)
+          wet = allpass.process(wet)
         }
 
-        output
+        streams = wet.streams.map.with_index {|wet_stream, i|
+          dry_stream = input.streams[i]
+          dst = Vdsp::DoubleArray.new(window_size)
+          Vdsp::UnsafeDouble.vsmsma(dry_stream, 0, 1, @dry, wet_stream, 0, 1, @wet, dst, 0, 1, window_size)
+          dst
+        }
+
+        Buffer.new(*streams)
       end
 
       def ms2freq(ms)
