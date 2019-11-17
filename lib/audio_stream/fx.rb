@@ -1,4 +1,5 @@
 require 'audio_stream/fx/bang_process'
+require 'audio_stream/fx/multi_audio_inputtable'
 
 require 'audio_stream/fx/a_gain'
 require 'audio_stream/fx/panning'

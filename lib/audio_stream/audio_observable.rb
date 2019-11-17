@@ -15,10 +15,19 @@ module AudioStream
       notify_observers(AudioNotification.new(AudioNotification::STAT_COMPLETE, nil, self))
     end
 
-    def fx(effector)
-      observer = AudioObservableFx.new(effector)
-      add_observer(observer)
-      observer
+    def fx(effector, **kwargs)
+      if Fx::MultiAudioInputtable===effector
+        bus = AudioObservableFxBus.new(effector)
+        bus.connect_observable(:main, self)
+        kwargs.each {|key, observable|
+          bus.connect_observable(key, observable)
+        }
+        bus
+      else
+        observer = AudioObservableFx.new(effector)
+        add_observer(observer)
+        observer
+      end
     end
 
     def stereo

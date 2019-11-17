@@ -1,7 +1,11 @@
 module AudioStream
   module Fx
     class Vocoder
+      include MultiAudioInputtable
+
       def initialize(soundinfo, shift: 0, bandwidth: 0.2)
+        regist_audio_input(:main)
+        regist_audio_input(:side)
 
         band_num = 16
         nyquist = soundinfo.samplerate * 0.5
@@ -25,17 +29,24 @@ module AudioStream
         @band_keys = @modulator_bpfs.keys & @carrier_bpfs.keys
       end
 
-      def process(input)
-        carrier = Buffer.new(input.streams[0])
-        modulator = Buffer.new(input.streams[1])
+      def process(inputs)
+        carrier = inputs[:main]
+        modulator = inputs[:side]
 
-        dsts = @band_keys.map {|key|
-          level = @modulator_bpfs[key].process(modulator).streams[0].max
-          @carrier_bpfs[key].process(carrier).streams[0] * level
+        channels = [carrier.channels, modulator.channels].max
+        if channels==2
+          carrier = carrier.stereo
+          modulator = modulator.stereo
+        end
+
+        dsts = channels.times.map {|i|
+          @band_keys.map {|key|
+            level = @modulator_bpfs[key].process(modulator).streams[i].max
+            @carrier_bpfs[key].process(carrier).streams[i] * level
+          }.inject(:+)
         }
 
-        dst0 = dsts.inject(:+)
-        Buffer.new(dst0)
+        Buffer.new(*dsts)
       end
     end
   end
