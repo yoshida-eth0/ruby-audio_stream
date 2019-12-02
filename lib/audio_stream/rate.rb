@@ -8,6 +8,7 @@ module AudioStream
     end
 
     def sec(soundinfo)
+      return @sec if @sec
       sample(soundinfo).to_f / soundinfo.samplerate
     end
 
@@ -33,6 +34,11 @@ module AudioStream
       end
     end
 
+    def freq(soundinfo)
+      return @freq if @freq
+      soundinfo.samplerate.to_f / sample(soundinfo)
+    end
+
     def frame_phase(soundinfo)
       sample_phase(soundinfo) * soundinfo.window_size
     end
@@ -45,7 +51,7 @@ module AudioStream
       new(sec: v)
     end
 
-    def self.millisec(v)
+    def self.msec(v)
       new(sec: v*0.001)
     end
 
