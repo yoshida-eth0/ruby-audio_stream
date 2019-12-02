@@ -1,12 +1,15 @@
 module AudioStream
   module Fx
     class Delay
+      # @param soundinfo [AudioStream::SoundInfo]
+      # @param time [AudioStream::Rate] delay time
+      # @param level [AudioStream::Decibel] wet gain
+      # @param feedback [AudioStream::Decibel] feedback level
       def initialize(soundinfo, time:, level:, feedback:)
-        @time = time
-        @level = level
-        @feedback = feedback
+        @level = Decibel.create(level).mag
+        @feedback = Decibel.create(feedback).mag
 
-        @delaysample = (soundinfo.samplerate * time).round
+        @delaysample = time.sample(soundinfo).round
         @delaybuf0 = Array.new(@delaysample, 0.0)
         @delaybuf1 = Array.new(@delaysample, 0.0)
         @seek = 0

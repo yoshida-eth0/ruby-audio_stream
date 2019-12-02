@@ -100,7 +100,7 @@ module AudioStream
       dst = buffers.inject(:+)
 
       if average
-        gain = AGain.new(level: 1.0/buffers.length)
+        gain = AGain.new(level: Decibel.mag(1.0/buffers.length))
         dst = gain.process(dst)
       end
 

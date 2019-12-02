@@ -19,6 +19,9 @@ module AudioStream
         }
       end
 
+      # @param soundinfo [AudioStream::SoundInfo]
+      # @param freq [Float] Cutoff frequency
+      # @param q [Float] Quality factor
       def self.create(soundinfo, freq:, q: DEFAULT_Q)
         filter = new(soundinfo)
         filter.update_coef(freq: freq, q: q)

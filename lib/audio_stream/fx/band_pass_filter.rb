@@ -19,6 +19,9 @@ module AudioStream
         }
       end
 
+      # @param soundinfo [AudioStream::SoundInfo]
+      # @param freq [Float] Center frequency
+      # @param bandwidth [Float] bandwidth (octave)
       def self.create(soundinfo, freq:, bandwidth: 1.0)
         filter = new(soundinfo)
         filter.update_coef(freq: freq, bandwidth: bandwidth)

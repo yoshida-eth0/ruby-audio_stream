@@ -3,6 +3,10 @@ module AudioStream
     class LowShelfFilter < BiquadFilter
 
       def update_coef(freq:, q:, gain:)
+        if Decibel===gain
+          gain = gain.db
+        end
+
         omega = 2.0 * Math::PI * freq / @samplerate
         alpha = Math.sin(omega) / (2.0 * q)
         a = 10.0 ** (gain / 40.0)
@@ -21,6 +25,10 @@ module AudioStream
         }
       end
 
+      # @param soundinfo [AudioStream::SoundInfo]
+      # @param freq [Float] Cutoff frequency
+      # @param q [Float] Quality factor
+      # @param gain [AudioStream::Decibel] Amplification level at cutoff frequency
       def self.create(soundinfo, freq:, q: DEFAULT_Q, gain: 1.0)
         filter = new(soundinfo)
         filter.update_coef(freq: freq, q: q, gain: gain)

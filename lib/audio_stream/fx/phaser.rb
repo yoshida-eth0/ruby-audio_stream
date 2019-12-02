@@ -2,7 +2,13 @@ module AudioStream
   module Fx
     class Phaser
 
-      def initialize(soundinfo, rate:, depth:, freq:, dry: 0.5, wet: 0.5)
+      # @param soundinfo [AudioStream::SoundInfo]
+      # @param rate [AudioStream::Rate] modulation speed
+      # @param depth [Float] frequency modulation depth
+      # @param freq [Float] Base cutoff frequency
+      # @param dry [AudioStream::Decibel] dry gain
+      # @param wet [AudioStream::Decibel] wet gain
+      def initialize(soundinfo, rate:, depth:, freq:, dry: -6.0, wet: -6.0)
         @soundinfo = soundinfo
 
         @filters = [
@@ -10,19 +16,19 @@ module AudioStream
           AllPassFilter.new(soundinfo),
         ]
 
-        @speed = 2.0 * Math::PI * rate / @soundinfo.samplerate
+        @speed = rate.frame_phase(soundinfo)
         @phase = 0
 
         @depth = depth
         @freq = freq
 
-        @dry = dry
-        @wet = wet
+        @dry = Decibel.create(dry).mag
+        @wet = Decibel.create(wet).mag
       end
 
       def process(input)
         window_size = input.window_size
-        @phase = (@phase + @speed * window_size) % (window_size / @speed)
+        @phase = (@phase + @speed) % (2.0 * Math::PI)
 
         a = Math.sin(@phase) * 0.5 + 0.5
         apf_freq = @freq * (1.0 + a * @depth)

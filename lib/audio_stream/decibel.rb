@@ -20,5 +20,13 @@ module AudioStream
     def self.mag(mag)
       new(mag: mag)
     end
+
+    def self.create(val)
+      if self===val
+        val
+      else
+        new(db: val.to_f)
+      end
+    end
   end
 end

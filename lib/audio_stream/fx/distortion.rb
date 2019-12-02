@@ -1,9 +1,11 @@
 module AudioStream
   module Fx
     class Distortion
-      def initialize(gain: 100, level: 0.1)
-        @gain = gain
-        @level = level
+      # @param gain [AudioStream::Decibel] input gain
+      # @param level [AudioStream::Decibel] output level
+      def initialize(gain: 40.0, level: -20.0)
+        @gain = Decibel.create(gain).mag
+        @level = Decibel.create(level).mag
       end
 
       def process(input)

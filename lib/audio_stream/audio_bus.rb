@@ -10,7 +10,7 @@ module AudioStream
     end
 
     def add(observable, gain:, pan:)
-      if gain && gain!=1.0
+      if gain && gain!=0.0
         observable = observable.fx(Fx::AGain.new(level: gain))
       end
 

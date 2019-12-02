@@ -3,6 +3,9 @@ module AudioStream
     class Vocoder
       include MultiAudioInputtable
 
+      # @param soundinfo [AudioStream::SoundInfo]
+      # @param shift [Float] modulator pitch shift. 1.0=1semitone
+      # @param bandwidth [Float] bandwidth (octave)
       def initialize(soundinfo, shift: 0, bandwidth: 0.2)
         regist_audio_input(:main)
         regist_audio_input(:side)

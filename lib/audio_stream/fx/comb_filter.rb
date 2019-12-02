@@ -2,10 +2,12 @@ module AudioStream
   module Fx
     class CombFilter
 
+      # @param soundinfo [AudioStream::SoundInfo]
+      # @param freq [AudioStream::Rate] frequency
+      # @param q [Float] Quality factor
       def initialize(soundinfo, freq:, q:)
         @window_size = soundinfo.window_size
-        @samplerate = soundinfo.samplerate
-        @delaysample = (soundinfo.samplerate.to_f / freq).round
+        @delaysample = freq.sample(soundinfo).round
         @q = q
 
         @delaybufs = [
