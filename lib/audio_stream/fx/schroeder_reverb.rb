@@ -2,21 +2,25 @@ module AudioStream
   module Fx
     class SchroederReverb
 
-      def initialize(soundinfo, time:, dry: 1.0, wet: 0.7)
+      # @param soundinfo [AudioStream::SoundInfo]
+      # @param time [AudioStream::Rate] reverb time
+      # @param dry [AudioStream::Decibel] dry gain
+      # @param wet [AudioStream::Decibel] wet gain
+      def initialize(soundinfo, time:, dry: 0.0, wet: -0.3)
         @window_size = soundinfo.window_size
         @combs = [
-          CombFilter.new(soundinfo, freq: ms2freq(39.85 / 2.0 * time), q: 0.871402),
-          CombFilter.new(soundinfo, freq: ms2freq(36.10 / 2.0 * time), q: 0.882762),
-          CombFilter.new(soundinfo, freq: ms2freq(33.27 / 2.0 * time), q: 0.891443),
-          CombFilter.new(soundinfo, freq: ms2freq(30.15 / 2.0 * time), q: 0.901117),
+          CombFilter.new(soundinfo, freq: time * (39.85 * 0.002), q: 0.871402),
+          CombFilter.new(soundinfo, freq: time * (36.10 * 0.002), q: 0.882762),
+          CombFilter.new(soundinfo, freq: time * (33.27 * 0.002), q: 0.891443),
+          CombFilter.new(soundinfo, freq: time * (30.15 * 0.002), q: 0.901117),
         ]
         @allpasss = [
-          AllPassFilter.create(soundinfo, freq: ms2freq(5.0), q: 0.7),
-          AllPassFilter.create(soundinfo, freq: ms2freq(1.7), q: 0.7),
+          AllPassFilter.create(soundinfo, freq: Rate.msec(5.0).freq(soundinfo), q: BiquadFilter::DEFAULT_Q),
+          AllPassFilter.create(soundinfo, freq: Rate.msec(1.7).freq(soundinfo), q: BiquadFilter::DEFAULT_Q),
         ]
 
-        @dry = dry.to_f
-        @wet = wet.to_f
+        @dry = Decibel.create(dry).mag
+        @wet = Decibel.create(wet).mag
       end
 
       def process(input)
@@ -42,10 +46,6 @@ module AudioStream
         }
 
         Buffer.new(*streams)
-      end
-
-      def ms2freq(ms)
-        1.0 / (ms / 1000.0)
       end
     end
   end
