@@ -6,7 +6,7 @@ module AudioStream
       # @param time [AudioStream::Rate] reverb time
       # @param dry [AudioStream::Decibel] dry gain
       # @param wet [AudioStream::Decibel] wet gain
-      def initialize(soundinfo, time:, dry: 0.0, wet: -0.3)
+      def initialize(soundinfo, time:, dry: -1.0, wet: -20.0)
         @window_size = soundinfo.window_size
         @combs = [
           CombFilter.new(soundinfo, freq: time * (39.85 * 0.002), q: 0.871402),
