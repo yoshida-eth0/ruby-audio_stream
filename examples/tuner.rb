@@ -1,4 +1,4 @@
-require 'audio_stream'
+require_relative 'example_options'
 
 include AudioStream
 include AudioStream::Fx
@@ -14,7 +14,8 @@ soundinfo = SoundInfo.new(
 # Track
 
 #track1 = AudioInput.sin(454.0, 100, 2048, soundinfo: soundinfo)
-track1 = AudioInput.device(soundinfo: soundinfo)
+#track1 = AudioInput.device(soundinfo: soundinfo)
+track1 = $input
 
 
 # Audio FX
@@ -58,7 +59,7 @@ track1
       print "\r% 4.3fhz % 5s% 2d %s % 2.3f" % [tone.freq, tone.note, tone.octave, bar, tone.diff]
 
     else
-      print "\r ---.---hz NOINPUT"
+      print "\r ---.---hz NOINPUT                                         "
     end
   }
 

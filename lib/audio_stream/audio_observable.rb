@@ -15,6 +15,8 @@ module AudioStream
       notify_observers(AudioNotification.new(AudioNotification::STAT_COMPLETE, nil, self))
     end
 
+    # @param effector [AudioStream::Fx::*] Effector
+    # @param kwargs [Hash[String,AudioStream::AudioObservable]] Side chain bus
     def fx(effector, **kwargs)
       if Fx::MultiAudioInputtable===effector
         bus = AudioObservableFxBus.new(effector)
@@ -46,6 +48,9 @@ module AudioStream
       observer
     end
 
+    # @param bus [AudioStream::AudioBus] Receive bus
+    # @param gain [AudioStream::Decibel | Float] Amplification level (~0.0)
+    # @param pan [Float] Panning (-1.0~1.0)
     def send_to(bus, gain: nil, pan: nil)
       bus.add(self, gain: gain, pan: pan)
       self

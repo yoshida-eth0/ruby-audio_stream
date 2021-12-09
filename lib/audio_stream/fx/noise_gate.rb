@@ -11,12 +11,17 @@ module AudioStream
         channels = input.channels
 
         # fft
-        input = @window.process(input)
         na = input.to_float_na
         fft = FFTW3.fft(na, FFTW3::FORWARD) / na.length
 
+        # fft
+        windowed_input = @window.process(input)
+        windowed_na = windowed_input.to_float_na
+        windowed_fft = FFTW3.fft(windowed_na, FFTW3::FORWARD) / windowed_na.length
+
+        # noise gate
         fft.size.times {|i|
-          if fft[i].abs < @threshold
+          if windowed_fft[i].abs < @threshold
             fft[i] = 0i
           end
         }

@@ -1,13 +1,9 @@
 module AudioStream
   module Fx
     class AGain
-      # @param level [AudioStream::Decibel] Amplification level
+      # @param level [AudioStream::Decibel | Float] Amplification level (~0.0)
       def initialize(level:)
-        if Decibel===level
-          @level = level.mag
-        else
-          @level = Decibel.db(level).mag
-        end
+        @level = Decibel.create(level).mag
       end
 
       def process(input)

@@ -3,7 +3,7 @@ module AudioStream
     class Phaser
 
       # @param soundinfo [AudioStream::SoundInfo]
-      # @param rate [AudioStream::Rate] modulation speed
+      # @param rate [AudioStream::Rate | Float] modulation speed
       # @param depth [Float] frequency modulation depth
       # @param freq [Float] Base cutoff frequency
       # @param dry [AudioStream::Decibel] dry gain
@@ -16,6 +16,7 @@ module AudioStream
           AllPassFilter.new(soundinfo),
         ]
 
+        rate = Rate.create(rate)
         @speed = rate.frame_phase(soundinfo)
         @phase = 0
 

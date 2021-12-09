@@ -218,6 +218,8 @@ module AudioStream
         max = 0x7FFF.to_f
       when NArray::FLOAT
         max = 1.0
+      when NArray::DCOMPLEX
+        max = 1.0
       end
 
       case channels

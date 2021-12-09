@@ -10,26 +10,22 @@ track1 = $input
 
 noise_gate = Compressor.new(threshold: 0.1, ratio: 10.0)
 compressor = Compressor.new(threshold: 0.3, ratio: 0.5)
-distortion = Distortion.new(gain: 300, level:0.1)
+distortion = Distortion.new(gain: 50, level: -20)
 eq_2band = Equalizer2band.new($soundinfo, lowgain: 0.0, highgain: -10.0)
 
 
 # Bus
 
-bus1 = AudioBus.new
 stereo_out = AudioOutput.device(soundinfo: $soundinfo)
 
 
 # Mixer
 
 track1
-  .fx(noise_gate)
-  .fx(compressor)
+  #.fx(noise_gate)
+  #.fx(compressor)
   .fx(distortion)
-  .send_to(bus1)
-
-bus1
-  .send_to(stereo_out)
+  .send_to(stereo_out, gain: -6)
 
 
 # start

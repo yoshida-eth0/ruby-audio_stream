@@ -3,16 +3,15 @@ module AudioStream
     class SchroederReverb
 
       # @param soundinfo [AudioStream::SoundInfo]
-      # @param time [AudioStream::Rate] reverb time
       # @param dry [AudioStream::Decibel] dry gain
       # @param wet [AudioStream::Decibel] wet gain
-      def initialize(soundinfo, time:, dry: -1.0, wet: -20.0)
+      def initialize(soundinfo, dry: -1.0, wet: -20.0)
         @window_size = soundinfo.window_size
         @combs = [
-          CombFilter.new(soundinfo, freq: time * (39.85 * 0.002), q: 0.871402),
-          CombFilter.new(soundinfo, freq: time * (36.10 * 0.002), q: 0.882762),
-          CombFilter.new(soundinfo, freq: time * (33.27 * 0.002), q: 0.891443),
-          CombFilter.new(soundinfo, freq: time * (30.15 * 0.002), q: 0.901117),
+          CombFilter.new(soundinfo, freq: Rate.msec(39.85), q: 0.871402),
+          CombFilter.new(soundinfo, freq: Rate.msec(36.10), q: 0.882762),
+          CombFilter.new(soundinfo, freq: Rate.msec(33.27), q: 0.891443),
+          CombFilter.new(soundinfo, freq: Rate.msec(30.15), q: 0.901117),
         ]
         @allpasss = [
           AllPassFilter.create(soundinfo, freq: Rate.msec(5.0).freq(soundinfo), q: BiquadFilter::DEFAULT_Q),

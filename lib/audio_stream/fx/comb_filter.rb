@@ -3,12 +3,14 @@ module AudioStream
     class CombFilter
 
       # @param soundinfo [AudioStream::SoundInfo]
-      # @param freq [AudioStream::Rate] frequency
+      # @param freq [AudioStream::Rate | Float] frequency
       # @param q [Float] Quality factor
       def initialize(soundinfo, freq:, q:)
+        freq = Rate.freq(freq)
+
         @window_size = soundinfo.window_size
         @delaysample = freq.sample(soundinfo).round
-        @q = q
+        @q = q.to_f
 
         @delaybufs = [
           Vdsp::DoubleArray.new(soundinfo.window_size + @delaysample),

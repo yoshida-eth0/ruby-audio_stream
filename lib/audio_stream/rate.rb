@@ -47,6 +47,11 @@ module AudioStream
       2.0 * Math::PI / sample(soundinfo)
     end
 
+    def add(other, soundinfo)
+      other = self.class.sec(other)
+      self.class.new(sec: self.sec(soundinfo) + other.sec(soundinfo))
+    end
+
     def *(other)
       other = other.to_f
 
@@ -67,24 +72,48 @@ module AudioStream
       end
     end
 
+    def self.create(v)
+      sec(v.to_f)
+    end
+
     def self.sec(v)
-      new(sec: v)
+      if self===v
+        v
+      else
+        new(sec: v)
+      end
     end
 
     def self.msec(v)
-      new(sec: v*0.001)
+      if self===v
+        v
+      else
+        new(sec: v*0.001)
+      end
     end
 
     def self.sample(v)
-      new(sample: v)
+      if self===v
+        v
+      else
+        new(sample: v)
+      end
     end
 
     def self.freq(v)
-      new(freq: v)
+      if self===v
+        v
+      else
+        new(freq: v)
+      end
     end
 
     def self.sync(v)
-      new(sync: v)
+      if self===v
+        v
+      else
+        new(sync: v)
+      end
     end
 
 
