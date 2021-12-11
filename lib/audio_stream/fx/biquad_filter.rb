@@ -4,7 +4,7 @@ module AudioStream
       DEFAULT_Q = 1.0 / Math.sqrt(2.0)
 
       def initialize(soundinfo)
-        @samplerate = soundinfo.samplerate.to_f
+        @soundinfo = soundinfo
         @biquads = [
           Vdsp::DoubleBiquad.new(1),
           Vdsp::DoubleBiquad.new(1),
@@ -37,7 +37,7 @@ module AudioStream
         a2 = @coef.a2
 
         noctaves = 10
-        nyquist = @samplerate * 0.5
+        nyquist = @soundinfo.samplerate * 0.5
 
         freq = []
         x = []
@@ -67,11 +67,16 @@ module AudioStream
       def plot(width=500)
         data = plot_data(width)
 
+        mag_range = nil
+        if -1.0<data[:magnitude].min && data[:magnitude].max<1.0
+          mag_range = [-1.0, 1.0]
+        end
+
         Plotly::Plot.new(
           data: [{x: data[:x], y: data[:magnitude], name: 'Magnitude', yaxis: 'y1'}, {x: data[:x], y: data[:phase], name: 'Phase', yaxis: 'y2'}],
           layout: {
             xaxis: {title: 'Frequency (Hz)', type: 'log'},
-            yaxis: {side: 'left', title: 'Magnitude (dB)', showgrid: false},
+            yaxis: {side: 'left', title: 'Magnitude (dB)', range: mag_range, showgrid: false},
             yaxis2: {side: 'right', title: 'Phase (deg)', showgrid: false, overlaying: 'y'}
           }
         )

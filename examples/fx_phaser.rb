@@ -14,8 +14,6 @@ phaser2 = Phaser.new($soundinfo, rate: 1.83, depth: 3.5, freq: 1357, dry: -6, we
 
 # Bus
 
-bus1 = AudioBus.new
-bus2 = AudioBus.new
 stereo_out = AudioOutput.device(soundinfo: $soundinfo)
 
 

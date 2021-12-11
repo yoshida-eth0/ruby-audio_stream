@@ -8,7 +8,7 @@ track1 = $input
 
 # Fx
 
-chorus = Chorus.new($soundinfo, depth: 100, rate: 0.25)
+chorus = Chorus.new($soundinfo, depth: 100, rate: 4)
 
 
 # Bus

@@ -48,16 +48,33 @@ module AudioStream
 
     def self.default_device(soundinfo:)
       dev = CoreAudio.default_input_device
+      is_supported_sample_rate = dev.available_sample_rate.any? {|min,max|
+        min<=soundinfo.samplerate && soundinfo.samplerate<=max
+      }
+      if !is_supported_sample_rate
+        raise Error, "Unsupported sample rate: samplerate=#{soundinfo.samplerate}, device=#{dev.name}, available_sample_rate=#{dev.available_sample_rate}"
+      end
+
+      dev = CoreAudio.default_input_device({nominal_rate: soundinfo.samplerate})
       new(dev, soundinfo: soundinfo)
     end
 
     def self.devices(soundinfo:)
-      CoreAudio.devices
-        .select{|dev|
-          0<dev.input_stream.channels
+      self.core_devices
+        .select {|dev|
+          dev.available_sample_rate.any? {|min,max|
+            min<=soundinfo.samplerate && soundinfo.samplerate<=max
+          }
         }
         .map {|dev|
           new(dev, soundinfo: soundinfo)
+        }
+    end
+
+    def self.core_devices
+      CoreAudio.devices
+        .select {|dev|
+          0<dev.input_stream.channels
         }
     end
   end

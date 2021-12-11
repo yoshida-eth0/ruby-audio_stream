@@ -1,8 +1,9 @@
 module AudioStream
   module Fx
     class Panning
+      # @param pan [Float] panning (-1.0~1.0) -1.0=left, 0.0=center, 1.0=right
       def initialize(pan: 0.0)
-        @pan = pan
+        @pan = pan.to_f
 
         l_gain = 1.0 - pan
         lr_gain = 0.0

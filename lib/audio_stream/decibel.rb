@@ -14,18 +14,18 @@ module AudioStream
     end
 
     def self.db(db)
-      new(db: db)
+      if self===db
+        db
+      else
+        new(db: db.to_f)
+      end
     end
 
     def self.mag(mag)
-      new(mag: mag)
-    end
-
-    def self.create(val)
-      if self===val
-        val
+      if self===mag
+        mag
       else
-        new(db: val.to_f)
+        new(mag: mag.to_f)
       end
     end
   end

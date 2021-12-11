@@ -72,10 +72,6 @@ module AudioStream
       end
     end
 
-    def self.create(v)
-      sec(v.to_f)
-    end
-
     def self.sec(v)
       if self===v
         v

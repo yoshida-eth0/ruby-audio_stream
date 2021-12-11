@@ -1,6 +1,13 @@
 module AudioStream
   module Fx
     class Equalizer3band
+      # @param soundinfo [AudioStream::SoundInfo]
+      # @param lowfreq [AudioStream::Rate | Float] Low cutoff frequency
+      # @param lowgain [AudioStream::Decibel | Float] Amplification level at low cutoff frequency
+      # @param midfreq [AudioStream::Rate | Float] Middle cutoff frequency
+      # @param midgain [AudioStream::Decibel | Float] Amplification level at middle cutoff frequency
+      # @param highfreq [AudioStream::Rate | Float] High cutoff frequency
+      # @param highgain [AudioStream::Decibel | Float] Amplification level at high cutoff frequency
       def initialize(soundinfo, lowfreq: 400.0, lowgain:, midfreq: 1000.0, midgain:, highfreq: 4000.0, highgain:)
         @low_filter = LowShelfFilter.create(soundinfo, freq: lowfreq, q: BiquadFilter::DEFAULT_Q, gain: lowgain)
         @mid_filter = PeakingFilter.create(soundinfo, freq: midfreq, bandwidth: 1.0, gain: midgain)

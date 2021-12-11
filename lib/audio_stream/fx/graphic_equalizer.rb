@@ -1,11 +1,15 @@
 module AudioStream
   module Fx
     class GraphicEqualizer
+      # @param soundinfo [AudioStream::SoundInfo]
       def initialize(soundinfo)
         @soundinfo = soundinfo
         @filters = []
       end
 
+      # @param freq [AudioStream::Rate | Float] Cutoff frequency
+      # @param bandwidth [Float] bandwidth (octave)
+      # @param gain [AudioStream::Decibel | Float] Amplification level at cutoff frequency
       def add(freq:, bandwidth: 1.0, gain:)
         @filters << PeakingFilter.create(@soundinfo, freq: freq, bandwidth: bandwidth, gain: gain)
         self

@@ -3,7 +3,7 @@ module AudioStream
     class HighPassFilter < BiquadFilter
 
       def update_coef(freq:, q:)
-        omega = 2.0 * Math::PI * freq / @samplerate
+        omega = freq.sample_phase(@soundinfo)
         alpha = Math.sin(omega) / (2.0 * q)
 
         a0 = 1.0 + alpha
@@ -20,10 +20,11 @@ module AudioStream
       end
 
       # @param soundinfo [AudioStream::SoundInfo]
-      # @param freq [Float] Cutoff frequency
+      # @param freq [AudioStream::Rate | Float] Cutoff frequency
       # @param q [Float] Quality factor
       def self.create(soundinfo, freq:, q: DEFAULT_Q)
         filter = new(soundinfo)
+        freq = Rate.freq(freq)
         filter.update_coef(freq: freq, q: q)
 
         filter

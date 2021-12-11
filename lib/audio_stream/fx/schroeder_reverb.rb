@@ -3,8 +3,8 @@ module AudioStream
     class SchroederReverb
 
       # @param soundinfo [AudioStream::SoundInfo]
-      # @param dry [AudioStream::Decibel] dry gain
-      # @param wet [AudioStream::Decibel] wet gain
+      # @param dry [AudioStream::Decibel | Float] dry gain
+      # @param wet [AudioStream::Decibel | Float] wet gain
       def initialize(soundinfo, dry: -1.0, wet: -20.0)
         @window_size = soundinfo.window_size
         @combs = [
@@ -18,8 +18,8 @@ module AudioStream
           AllPassFilter.create(soundinfo, freq: Rate.msec(1.7).freq(soundinfo), q: BiquadFilter::DEFAULT_Q),
         ]
 
-        @dry = Decibel.create(dry).mag
-        @wet = Decibel.create(wet).mag
+        @dry = Decibel.db(dry).mag
+        @wet = Decibel.db(wet).mag
       end
 
       def process(input)

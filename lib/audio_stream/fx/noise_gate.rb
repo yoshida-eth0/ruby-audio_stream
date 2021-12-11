@@ -11,23 +11,19 @@ module AudioStream
         channels = input.channels
 
         # fft
-        na = input.to_float_na
+        na = @window.process(input).to_float_na
         fft = FFTW3.fft(na, FFTW3::FORWARD) / na.length
-
-        # fft
-        windowed_input = @window.process(input)
-        windowed_na = windowed_input.to_float_na
-        windowed_fft = FFTW3.fft(windowed_na, FFTW3::FORWARD) / windowed_na.length
 
         # noise gate
         fft.size.times {|i|
-          if windowed_fft[i].abs < @threshold
+          if @threshold <= fft[i].abs
             fft[i] = 0i
           end
         }
         wet_na = FFTW3.fft(fft, FFTW3::BACKWARD)
+        noise = Buffer.from_na(wet_na)
 
-        Buffer.from_na(wet_na)
+        input - noise
       end
     end
   end

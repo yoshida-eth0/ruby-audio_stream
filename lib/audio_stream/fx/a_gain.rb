@@ -3,7 +3,7 @@ module AudioStream
     class AGain
       # @param level [AudioStream::Decibel | Float] Amplification level (~0.0)
       def initialize(level:)
-        @level = Decibel.create(level).mag
+        @level = Decibel.db(level).mag
       end
 
       def process(input)

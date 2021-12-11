@@ -84,6 +84,26 @@ module AudioStream
       end
     end
 
+    def -(other)
+      if self.window_size!=other.window_size
+        raise Error, "Buffer.window_size is not match: self.window_size=#{self.window_size} other.window_size=#{other.window_size}"
+      end
+
+      channels = [self.channels, other.channels].max
+      case channels
+      when 1
+        stream0 = self.streams[0] + other.streams[0]
+        self.class.new(stream0)
+      when 2
+        st_self = self.stereo
+        st_other = other.stereo
+
+        stream0 = st_self.streams[0] - st_other.streams[0]
+        stream1 = st_self.streams[1] - st_other.streams[1]
+        self.class.new(stream0, stream1)
+      end
+    end
+
     def self.merge(buffers, average: false)
       buffers.each {|buf|
         unless Buffer===buf

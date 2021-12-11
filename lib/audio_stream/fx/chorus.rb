@@ -1,11 +1,12 @@
 module AudioStream
   module Fx
     class Chorus
-      def initialize(soundinfo, depth: 100, rate: 0.25)
-        @soundinfo = soundinfo
-
+      # @param soundinfo [AudioStream::SoundInfo]
+      # @param depth [Float] Chorus depth (0.0~)
+      # @param rate [AudioStream::Rate | Float] Chorus speed (0.0~) default unit: sec
+      def initialize(soundinfo, depth: 100, rate: 4)
         @depth = depth
-        @rate = rate
+        @rate = Rate.sec(rate)
 
         @delaybufs = [
           RingBuffer.new(@depth * 3, 0.0),
@@ -13,7 +14,7 @@ module AudioStream
         ]
 
         @phase = 0
-        @speed = (2.0 * Math::PI * @rate) / @soundinfo.samplerate
+        @speed = @rate.sample_phase(soundinfo)
       end
 
       def process(input)

@@ -1,13 +1,16 @@
 module AudioStream
   module Fx
     class ConvolutionReverb
-      def initialize(impulse, dry: 0.5, wet: 0.5)
+      # @param impulse [AudioStream::AudioInput] Impulse input
+      # @param dry [AudioStream::Decibel | Float] Dry gain
+      # @param wet [AudioStream::Decibel | Float] Wet gain
+      def initialize(impulse, dry: -6, wet: -6)
         impulse_bufs = impulse.to_a
         @impulse_size = impulse_bufs.size
         @channels = impulse_bufs[0].channels
         @window_size = impulse_bufs[0].window_size
-        @dry_gain = dry
-        @wet_gain = wet
+        @dry_gain = Decibel.db(dry).mag
+        @wet_gain = Decibel.db(wet).mag
 
         zero_buf = Buffer.create(@window_size, @channels)
         impulse_bufs = [zero_buf.clone] + impulse_bufs
@@ -16,7 +19,7 @@ module AudioStream
         @impulse_size.times {|i|
           na = NArray.float(@channels, @window_size*2)
           impulse_bufs[i].to_float_na(na, 0)
-          impulse_bufs[i+1].to_float_na(na, @window_size)
+          impulse_bufs[i+1].to_float_na(na, @window_size*@channels)
           @impulse_ffts << FFTW3.fft(na, FFTW3::FORWARD) / na.length
         }
 
@@ -40,7 +43,7 @@ module AudioStream
         # current dry to wet
         na = NArray.float(@channels, @window_size*2)
         @prev_input.to_float_na(na, 0)
-        input.to_float_na(na, @window_size)
+        input.to_float_na(na, @window_size*@channels)
 
         input_fft = FFTW3.fft(na, FFTW3::FORWARD) / na.length
 
