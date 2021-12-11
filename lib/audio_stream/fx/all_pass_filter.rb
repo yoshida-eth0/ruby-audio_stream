@@ -3,6 +3,8 @@ module AudioStream
     class AllPassFilter < BiquadFilter
 
       def update_coef(freq:, q:)
+        freq = Rate.freq(freq)
+
         omega = freq.sample_phase(@soundinfo)
         alpha = Math.sin(omega) / (2.0 * q)
 
@@ -24,7 +26,6 @@ module AudioStream
       # @param q [Float] Quality factor
       def self.create(soundinfo, freq:, q: DEFAULT_Q)
         filter = new(soundinfo)
-        freq = Rate.freq(freq)
         filter.update_coef(freq: freq, q: q)
 
         filter

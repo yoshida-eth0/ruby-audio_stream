@@ -3,6 +3,8 @@ module AudioStream
     class BandPassFilter < BiquadFilter
 
       def update_coef(freq:, bandwidth:)
+        freq = Rate.freq(freq)
+
         omega = freq.sample_phase(@soundinfo)
         alpha = Math.sin(omega) * Math.sinh(Math.log(2.0) / 2.0 * bandwidth * omega / Math.sin(omega))
 
@@ -24,7 +26,6 @@ module AudioStream
       # @param bandwidth [Float] bandwidth (octave)
       def self.create(soundinfo, freq:, bandwidth: 1.0)
         filter = new(soundinfo)
-        freq = Rate.freq(freq)
         filter.update_coef(freq: freq, bandwidth: bandwidth)
 
         filter

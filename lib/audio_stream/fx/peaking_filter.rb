@@ -3,6 +3,9 @@ module AudioStream
     class PeakingFilter < BiquadFilter
 
       def update_coef(freq:, bandwidth:, gain:)
+        freq = Rate.freq(freq)
+        gain = Decibel.db(gain)
+
         omega = freq.sample_phase(@soundinfo)
         alpha = Math.sin(omega) * Math.sinh(Math.log(2.0) / 2.0 * bandwidth * omega / Math.sin(omega))
         a = Decibel.db(gain.db / 2.0).mag
@@ -26,8 +29,6 @@ module AudioStream
       # @param gain [AudioStream::Decibel | Float] Amplification level at cutoff frequency
       def self.create(soundinfo, freq:, bandwidth: 1.0, gain: 40.0)
         filter = new(soundinfo)
-        freq = Rate.freq(freq)
-        gain = Decibel.db(gain)
         filter.update_coef(freq: freq, bandwidth: bandwidth, gain: gain)
 
         filter
