@@ -5,6 +5,15 @@ module AudioStream
     attr_reader :channels
     attr_reader :window_size
 
+    STREAM_NAMES = [
+      'Left',
+      'Right'
+    ]
+    COMPLEX_NAMES = [
+      'Real',
+      'Imag'
+    ]
+
     def initialize(stream0, stream1=nil)
       if Array===stream0
         stream0 = Vdsp::DoubleArray.create(stream0)
@@ -129,28 +138,59 @@ module AudioStream
 
     def plot
       xs = window_size.times.to_a
-      traces = @streams.map {|stream|
-        {x: xs, y: stream}
+      traces = @streams.map.with_index {|stream,i|
+        {x: xs, y: stream.to_a, name: STREAM_NAMES[i], xaxis: "x#{i+1}", yaxis: "y#{i+1}"}
       }
 
-      Plotly::Plot.new(data: traces)
+      layout = {
+        grid: {rows: traces.length, columns: 1, pattern: :independent}
+      }
+
+      traces.each_with_index {|trace,i|
+        max = [trace[:y].min.abs, trace[:y].max].max
+        y_range = max<1.0 ? [-1.0, 1.0] : [-max, max]
+
+        layout[:"yaxis#{i+1}"] = {side: 'left', title: 'Gain', range: y_range, showgrid: false}
+      }
+
+      layout[:"xaxis#{traces.length}"] = {title: 'Samples'}
+
+      Plotly::Plot.new(
+        data: traces,
+        layout: layout
+      )
     end
 
     def fft_plot(samplerate=44100, window=nil)
-      window ||= HanningWindow.instance
+      window ||= Fx::HanningWindow.instance
 
       na = window.process(self).to_float_na
       fft = FFTW3.fft(na, FFTW3::FORWARD) / na.length
       buf = Buffer.from_na(fft)
 
       xs = window_size.times.map{|i| i.to_f * samplerate / window_size}
-      traces = buf.streams.map {|stream|
-        {x: xs, y: stream}
+      traces = buf.streams.map.with_index {|stream,i|
+        {x: xs, y: stream.abs.to_a, name: COMPLEX_NAMES[i], xaxis: "x#{i+1}", yaxis: "y#{i+1}"}
       }
+
+      layout = {
+        xaxis1: {type: 'log'},
+        xaxis2: {type: 'log'},
+        grid: {rows: traces.length, columns: 1, pattern: :independent}
+      }
+
+      traces.each_with_index {|trace,i|
+        max = trace[:y].max
+        y_range = max<1.0 ? [0.0, 1.0] : [0.0, max]
+
+        layout[:"yaxis#{i+1}"] = {side: 'left', title: 'Amplitude', range: y_range, showgrid: false}
+      }
+
+      layout[:"xaxis#{traces.length}"][:title] = 'Frequency (Hz)'
 
       Plotly::Plot.new(
         data: traces,
-        xaxis: {title: 'Frequency (Hz)', type: 'log'}
+        layout: layout
       )
     end
 
@@ -233,6 +273,7 @@ module AudioStream
       channels = na.shape[0]
       window_size = na.size / channels
 
+      is_complex = false
       case na.typecode
       when NArray::SINT
         max = 0x7FFF.to_f
@@ -240,6 +281,7 @@ module AudioStream
         max = 1.0
       when NArray::DCOMPLEX
         max = 1.0
+        is_complex = true
       end
 
       case channels
@@ -252,10 +294,17 @@ module AudioStream
       when 2
         stream0 = []
         stream1 = []
-        window_size.times {|i|
-          stream0 << na[i*2].real / max
-          stream1 << na[(i*2)+1].real / max
-        }
+        if !is_complex
+          window_size.times {|i|
+            stream0 << na[i*2].real / max
+            stream1 << na[(i*2)+1].real / max
+          }
+        else
+          window_size.times {|i|
+            stream0 << na[i*2].real / max
+            stream1 << na[i*2].imag / max
+          }
+        end
         self.new(stream0, stream1)
       end
     end
