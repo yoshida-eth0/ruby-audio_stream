@@ -36,7 +36,12 @@ module AudioStream
 
     def freq(soundinfo)
       return @freq if @freq
-      soundinfo.samplerate.to_f / sample(soundinfo)
+      freq = soundinfo.samplerate.to_f / sample(soundinfo)
+
+      if freq.infinite?
+        freq = 0.0
+      end
+      freq
     end
 
     def frame_phase(soundinfo)

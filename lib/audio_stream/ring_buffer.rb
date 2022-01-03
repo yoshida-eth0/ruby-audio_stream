@@ -9,7 +9,6 @@ module AudioStream
 
     def each(&block)
       Enumerator.new do|y|
-        start = @seek
         @array.size.times {|i|
           y << self[i]
         }
